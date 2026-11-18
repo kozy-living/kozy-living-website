@@ -44,7 +44,7 @@ Official references:
 | Layer | Behavior and limits |
 | --- | --- |
 | Edge firewall | `scripts/cloudflare-shield.mjs`: scanner probes blocked; overseas `/search*` and `/shop-by-*` traffic challenged; verified bots, robots.txt and webhook POSTs skip custom challenges. Never trust a claimed user-agent as verification. |
-| Edge rate limit | One IP per datacentre: 30 requests/10 seconds, blocked for 10 seconds. Covers search, shop-by pages, search API, webhooks and health. Distributed traffic can evade this. Verified bots are excluded. |
+| Edge rate limit | One IP per datacentre: 30 requests/10 seconds, blocked for 10 seconds. Covers search, shop-by pages, kit builder, account and API routes. Distributed traffic can evade this. Verified bots are excluded. |
 | Bot settings | AI crawlers blocked; basic Bot Fight Mode off because its challenges cannot be exempted for Shopify webhooks. Workers Paid does not include a Pro website plan or Super Bot Fight Mode. |
 | Request preparation | `cloudflare/request-guard.ts`: oversized browse URLs rejected before Next, search query capped at 80 characters, tracking/internal cache parameters removed from BOTH the render URL and cache key. Merchant facet parameters remain supported. |
 | Shared public cache | `cloudflare/shop-cache.ts`: HTML browse pages fresh for 60 seconds; search API JSON fresh for 5 minutes; last good copies retained up to 24 hours, subject to eviction. Separate phone/desktop and deployment keys. Query ordering is normalized. |
@@ -58,8 +58,9 @@ Official references:
 
 Cache retention is not a backup: a cold datacentre or evicted entry has no
 stale copy. Random meaningful search queries still create separate work.
-RSC, dynamic account/cart actions and kit builder requests need their own
-application/edge safeguards; the public HTML cache is not their protection.
+RSC, dynamic account/cart actions and kit builder requests bypass the public
+cache but share the per-isolate render budget and edge rate rule. Requests
+to static/content routes are outside that budget.
 
 ## 3. Account activation and credentials
 
@@ -160,8 +161,11 @@ npm run protection:live  # actual storefront and shield heartbeat
 ```
 
 For local runtime verification, build once and run
-`npx opennextjs-cloudflare preview --port 8787` (Windows works here, but the
-adapter recommends WSL). A local shield without real API credentials is
+`node scripts/cloudflare-run.mjs preview --port 8787`. The adapter recommends
+WSL; this repo pins OpenNext 1.20.17 and uses a shell-free Wrangler runner
+for preview/deploy because upstream npm-exec SQL quoting hung on Windows.
+The runner preserves OpenNext R2 seeding, D1 tag caching and skew protection;
+review it alongside any adapter upgrade. A local shield without real API credentials is
 expected to be unhealthy; local content tests must not certify production.
 
 During an incident inspect Security Events and Worker logs, especially

@@ -4,6 +4,7 @@ export const SHOP_PATH = /^\/(?:search(?:\/[^/]+)?|shop-by-colour|shop-by-mood)\
 export const SEARCH_API = "/api/search";
 const MAX_ACTIVE = 16;
 let active = 0;
+const expensivePath = (path: string) => SHOP_PATH.test(path) || path === "/kit-builder" || path === "/account" || path.startsWith("/api/");
 
 export function busyResponse(): Response {
   return new Response("The shop is busy. Please retry shortly.", {
@@ -37,7 +38,7 @@ export function prepareRequest(request: Request): Request | Response {
 
 export async function withRenderBudget(request: Request, render: (request: Request) => Promise<Response>): Promise<Response> {
   const url = new URL(request.url);
-  if (!SHOP_PATH.test(url.pathname) && url.pathname !== SEARCH_API) return render(request);
+  if (!expensivePath(url.pathname)) return render(request);
   if (active >= MAX_ACTIVE) return busyResponse();
   active++;
   let released = false;

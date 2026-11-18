@@ -26,7 +26,9 @@ test("rotating URLs and RSC requests share a bounded render budget, which recove
     const busy = await withRenderBudget(new Request("https://kozyliving.in/api/search?q=other"), render);
     assert.equal(busy.status, 429);
     assert.equal(busy.headers.get("retry-after"), "10");
-    assert.equal((await withRenderBudget(new Request("https://kozyliving.in/account"), async () => new Response("account"))).status, 200);
+    assert.equal((await withRenderBudget(new Request("https://kozyliving.in/kit-builder"), render)).status, 429);
+    assert.equal((await withRenderBudget(new Request("https://kozyliving.in/account"), render)).status, 429);
+    assert.equal((await withRenderBudget(new Request("https://kozyliving.in/about-us"), async () => new Response("about"))).status, 200);
   } finally { release(); for (const response of await Promise.all(requests)) await response.text(); }
   assert.equal(await (await withRenderBudget(new Request("https://kozyliving.in/search"), render)).text(), "ok");
   await assert.rejects(withRenderBudget(new Request("https://kozyliving.in/search"), async () => { throw new Error("failed"); }));

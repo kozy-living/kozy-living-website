@@ -20,5 +20,5 @@ test("disabled, reordered and missing firewall rules fail verification", () => {
   disabled[1].enabled = false;
   assert.ok(diffRules("custom", disabled, CUSTOM_RULES).some((message) => message.includes("enabled")));
   assert.ok(diffRules("custom", [...CUSTOM_RULES].reverse(), CUSTOM_RULES).some((message) => message.includes("position")));
-  assert.match(RATE_LIMIT_RULES[0].expression, /\/api\/search/);
+  assert.match(RATE_LIMIT_RULES[0].expression, /\/api\//);
 });

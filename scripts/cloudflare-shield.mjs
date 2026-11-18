@@ -67,8 +67,8 @@ export const CUSTOM_RULES = [
 export const RATE_LIMIT_RULES = [
   {
     ref: "kozy-ratelimit-search",
-    description: "One address hammering the search: 30 requests in 10 s",
-    expression: '(starts_with(http.request.uri.path, "/search") or starts_with(http.request.uri.path, "/shop-by-") or http.request.uri.path eq "/api/search" or http.request.uri.path eq "/api/revalidate" or http.request.uri.path eq "/api/protection-health") and not cf.client.bot',
+    description: "One address hammering dynamic routes: 30 requests in 10 s",
+    expression: '(starts_with(http.request.uri.path, "/search") or starts_with(http.request.uri.path, "/shop-by-") or http.request.uri.path eq "/kit-builder" or http.request.uri.path eq "/account" or starts_with(http.request.uri.path, "/api/")) and not cf.client.bot',
     action: "block",
     ratelimit: {
       characteristics: ["cf.colo.id", "ip.src"],
