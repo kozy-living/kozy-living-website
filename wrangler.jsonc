@@ -9,7 +9,9 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "kozy-living",
-  "main": ".open-next/worker.js",
+  // Wraps OpenNext's `.open-next/worker.js` with the shop micro-cache and
+  // the automatic shield (cloudflare/worker.ts).
+  "main": "cloudflare/worker.ts",
   "compatibility_date": "2026-11-17",
   // nodejs_compat: Next's server needs Node APIs (Buffer, AsyncLocalStorage).
   // global_fetch_strictly_public: a fetch to our own hostname goes out and
@@ -51,6 +53,25 @@
   "images": { "binding": "IMAGES" },
 
   // Workers Logs: request logs and console output, searchable in the
-  // dashboard. Included in the Workers Paid plan.
-  "observability": { "enabled": true }
+  // dashboard. Included in the Workers Paid plan. The shield logs every
+  // round as `shield: ...`.
+  "observability": { "enabled": true },
+
+  // The automatic shield (cloudflare/shield.ts) checks traffic every 5 min.
+  "triggers": { "crons": ["*/5 * * * *"] },
+
+  // Not secrets: ids are visible in the dashboard URL. The API token the
+  // shield needs IS a secret: `npx wrangler secret put SHIELD_API_TOKEN`.
+  "vars": {
+    // Dashboard -> any page: the 32-hex id after dash.cloudflare.com/.
+    "CF_ACCOUNT_ID": "REPLACE_WITH_ACCOUNT_ID",
+    // Dashboard -> kozyliving.in -> Overview -> API -> Zone ID.
+    "CF_ZONE_ID": "REPLACE_WITH_ZONE_ID",
+    "SHIELD_SCRIPT_NAME": "kozy-living",
+    // Worker requests in 5 minutes that switch Under Attack on. ~36 a second,
+    // sustained: far above this shop's real traffic (the Nov 16 flood
+    // averaged ~425 per 5 min), low enough that a flood big enough to matter
+    // on the bill is cut off within 5-10 minutes.
+    "SHIELD_REQUESTS_PER_5MIN": "3000"
+  }
 }

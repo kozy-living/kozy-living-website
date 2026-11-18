@@ -1,0 +1,62 @@
+# Hourly: is the store up, and is every edge rule still in place?
+#
+# A failed run emails the repository's owner (GitHub's default for a
+# scheduled workflow). Both November 2026 pauses were found by a customer-
+# facing outage, not by an alert; and the protection that mattered lived in
+# a dashboard where nothing would say if it was switched off. This is that
+# alert. Setup: docs/cloudflare-hosting.md §5.
+name: Shield check
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # A 200 from the home page and the sitemap. A Cloudflare challenge
+      # (`cf-mitigated: challenge`) means the automatic shield or Under
+      # Attack mode is on: the site is up and defending itself, which is a
+      # notice, not a failure. Three tries, so one slow response is not an
+      # alarm.
+      - name: Store answers
+        run: |
+          for path in / /sitemap.xml; do
+            ok=""
+            for attempt in 1 2 3; do
+              headers=$(curl -s -o /dev/null -D - --max-time 20 "https://kozyliving.in$path" | tr -d '\r')
+              status=$(printf '%s\n' "$headers" | awk 'NR==1{print $2}')
+              if printf '%s\n' "$headers" | grep -qi '^cf-mitigated: challenge'; then
+                echo "::notice::$path is behind a Cloudflare challenge (shield / Under Attack on) - site is up"
+                ok=1; break
+              fi
+              if [ "$status" = "200" ]; then echo "$path -> 200"; ok=1; break; fi
+              echo "$path -> ${status:-no answer} (attempt $attempt)"; sleep 20
+            done
+            [ -n "$ok" ] || { echo "::error::https://kozyliving.in$path is not answering"; exit 1; }
+          done
+
+      # Fails on any drift from scripts/cloudflare-shield.mjs. A READ-ONLY
+      # token is enough (Zone: Zone Read, Zone WAF Read, Bot Management Read,
+      # Zone Settings Read); it is skipped until the secret exists.
+      - name: Edge rules in place
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_SHIELD_CHECK_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::warning::CLOUDFLARE_SHIELD_CHECK_TOKEN is not set - edge rules not checked"
+            exit 0
+          fi
+          node scripts/cloudflare-shield.mjs check

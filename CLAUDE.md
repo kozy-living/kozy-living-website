@@ -1573,6 +1573,25 @@ instead of pausing.
 
 What the move put in the repo, and what it relies on:
 
+- **Protection is layered and mostly in the repo** (`docs/cloudflare-hosting.md`
+  §5). `cloudflare/worker.ts` is the Worker's `main`: it wraps OpenNext's
+  `.open-next/worker.js` with the **shop micro-cache**
+  (`cloudflare/shop-cache.ts` - the `ƒ` shop pages cached per URL + phone /
+  desktop for 60 s, stale copies kept 24 h as the fallback when Shopify or a
+  render fails; `x-kozy-cache` says which) and the **automatic shield**
+  (`cloudflare/shield.ts`, 5-min cron - Under Attack mode over
+  `SHIELD_REQUESTS_PER_5MIN`, held 2 h+, only ever lowers what it raised).
+  The edge rules are `scripts/cloudflare-shield.mjs` (`npm run
+  shield:apply` / `shield:check`), checked hourly with uptime by
+  `.github/workflows/shield-check.yml`. Run `npm run cf:check` (types + 23
+  tests) after touching `cloudflare/`.
+  - If the shop pages ever start reading a cookie or header other than the
+    viewport signal (`lib/shop/viewport.ts`), the micro-cache would share
+    one visitor's page with another: add it to the cache key in
+    `shop-cache.ts`, or keep it in the browser. Same if a new `ƒ` route is
+    added to its `SHOP_PATH`.
+  - `cloudflare/` is excluded from the app's tsconfig (it imports the
+    OpenNext output, which does not exist during `next build`).
 - `wrangler.jsonc` (bindings, domains; `workers_dev` / `preview_urls` OFF),
   `open-next.config.ts` (R2 incremental cache behind the regional Cache API,
   D1 tag cache for `revalidateTag`, memory queue), `public/_headers` (asset
@@ -1707,11 +1726,13 @@ What changed, and the rules that keep it fixed:
   site. The runtime Admin app holds nearly every Admin scope (themes,
   orders, payments); the site needs only metaobjects + customers. Its
   `shop` CNAME must stay DNS-only (grey cloud) on Cloudflare.
-- **Outside the repo (Cloudflare dashboard):** WAF custom rules (scanner
-  probes → Block; `/search*` + `/shop-by-*` outside India → Managed
-  Challenge), one rate-limit rule on `/search`, Block AI bots on, **Bot Fight
-  Mode off** (it can challenge Shopify's webhooks). Exact expressions:
-  `docs/cloudflare-hosting.md` §5.
+- **Edge rules are code** (`scripts/cloudflare-shield.mjs`): skip rule for
+  Shopify webhooks / robots.txt / verified bots (first), scanner probes →
+  Block, `/search*` + `/shop-by-*` outside India → Managed Challenge, one
+  rate limit on `/search`, AI bots blocked, **Bot Fight Mode off** (it can
+  challenge Shopify's webhooks). Change the script, not the dashboard.
+  Still dashboard-only: the Usage Based Billing notification and Web
+  Analytics (`docs/cloudflare-hosting.md` §5).
 
 # This is NOT the Next.js you know
 

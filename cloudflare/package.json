@@ -1,0 +1,4 @@
+{
+  "//": "Worker code is ES modules; lets `node --test` load shield.test.ts without a warning.",
+  "type": "module"
+}
