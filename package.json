@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "npm run protection:config && npm run shield:check && npm run cf:check && opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "deploy": "npm run protection:config && npm run shield:check && node scripts/verify-worker-secrets.mjs && npm run cf:check && opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types cloudflare/worker-configuration.d.ts",
     "cf:check": "npm run cf-typegen && tsc -p cloudflare && node --test cloudflare/*.test.ts scripts/*.test.mjs",
     "shield:apply": "node --env-file-if-exists=.env.protection.local scripts/cloudflare-shield.mjs apply",
