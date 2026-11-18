@@ -94,11 +94,13 @@ function keyFor(request: Request, url: URL, version: string): Request {
 }
 
 function storable(response: Response): boolean {
+  const safeVary = (response.headers.get("vary") ?? "").split(",").every((name) =>
+    /^(?:|accept-encoding|rsc|next-router-state-tree|next-router-prefetch|next-router-segment-prefetch)$/i.test(name.trim()));
   return (
     response.status === 200 &&
     !response.headers.has("set-cookie") &&
     /^(?:text\/html|application\/json)\b/.test(response.headers.get("content-type") ?? "") &&
-    response.headers.get("vary") !== "*" &&
+    safeVary &&
     response.body !== null
   );
 }

@@ -25,7 +25,7 @@ Dabu hand-block printing.
 | Styling | Tailwind 3.4 + a large hand-written `@layer components` in `globals.css` |
 | Commerce | Shopify Storefront GraphQL API (`/api/2026-07/graphql.json`) |
 | Motion | GSAP + ScrollTrigger, Lenis smooth scroll |
-| Hosting | Cloudflare Workers (Paid) via `@opennextjs/cloudflare` - moved off Vercel Hobby 2026-11-18 (§17, `docs/cloudflare-hosting.md`) |
+| Hosting | Cloudflare Workers (Paid) migration prepared via `@opennextjs/cloudflare`; verify live status in `docs/cloudflare-hosting.md` (§17). |
 | Commands | `npm run dev` · `npm run build` · `npm run lint` · `npm run cf:preview` · `npm run deploy` |
 
 > ⚠️ **`README.md` is stale and actively misleading.** It describes a previous
@@ -1557,19 +1557,20 @@ rules are `lib/shop/size-chart.ts`, the drawer
 
 ## 17. Hosting, caching and crawl budget
 
-**The store runs on Cloudflare Workers (Paid) through OpenNext** since
-2026-11-18. Setup, the Cloudflare dashboard settings that live outside the
-repo (WAF rules, rate limit, Web Analytics) and the cost model are
+**The store is prepared for Cloudflare Workers (Paid) through OpenNext.**
+Do not infer live migration from this code: on 2026-11-18 the domain still
+returned Vercel's DEPLOYMENT_DISABLED and the Cloudflare zone was pending.
+Setup, protection verification and the cost model are
 `docs/cloudflare-hosting.md`. The two Vercel Hobby pauses that forced the
 move are `docs/vercel-hosting.md` (§1-8 the first, §9 the second).
 
-Why it moved: on 2026-11-16 ~118,600 real browsers with **no referrer**
-(bought traffic, most likely; 94% on `/search`, 92% bounce, nearly all from
-outside India) took ~12 GB of Fast Origin Transfer in a day, and Vercel
-paused the store for 30 days. They ran JavaScript, so Bot Protection let
-them through, and no amount of caching keeps a flood that size inside
-Hobby's monthly limits. Workers bills no bandwidth and charges overage
-instead of pausing.
+Why migrate: on 2026-11-16 analytics recorded ~118,500 visitors (94% on
+`/search`, 92% bounce, most outside India) with a corresponding resource
+spike, followed by a Vercel suspension for origin transfer. JavaScript
+execution does not prove visitors are human; missing referrers do not
+prove purchased traffic. Source and intent remain unconfirmed. Workers
+charges overage, but spending limits can stop requests. No availability or
+maximum-bill guarantee follows from moving hosts.
 
 What the move put in the repo, and what it relies on:
 
@@ -1580,11 +1581,23 @@ What the move put in the repo, and what it relies on:
   desktop for 60 s, stale copies kept 24 h as the fallback when Shopify or a
   render fails; `x-kozy-cache` says which) and the **automatic shield**
   (`cloudflare/shield.ts`, 5-min cron - Under Attack mode over
-  `SHIELD_REQUESTS_PER_5MIN`, held 2 h+, only ever lowers what it raised).
+  `SHIELD_REQUESTS_PER_5MIN` (300), held 2 h+, only ever lowers what it raised).
   The edge rules are `scripts/cloudflare-shield.mjs` (`npm run
-  shield:apply` / `shield:check`), checked hourly with uptime by
-  `.github/workflows/shield-check.yml`. Run `npm run cf:check` (types + 23
-  tests) after touching `cloudflare/`.
+  shield:apply` / `shield:check`), checked every 15 minutes with uptime by
+  `.github/workflows/shield-check.yml`. Run `npm run cf:check` (types and
+  security regressions) after touching `cloudflare/`.
+  - `request-guard.ts` normalizes tracking/internal cache parameters before
+    BOTH rendering and keying, bounds URL sizes and protected renders per
+    isolate (including streaming bodies and RSC), and rejects forged
+    webhook secrets before Next loads. It is not a global rate/spend cap.
+  - The cache also covers public `/api/search` JSON, coalesces cold misses,
+    isolates deployments via VERSION_METADATA, bypasses Authorization and
+    private responses, and backs off failed stale refreshes for 30 seconds.
+  - `/api/protection-health` requires a successful scheduled heartbeat
+    within 15 minutes. Missing/malformed analytics must never mean calm.
+    Monitoring must verify shop content, not just a challenge/200 response;
+    missing monitoring credentials fail. `npm run deploy` refuses incomplete
+    config, missing remote secrets or unverified edge rules.
   - If the shop pages ever start reading a cookie or header other than the
     viewport signal (`lib/shop/viewport.ts`), the micro-cache would share
     one visitor's page with another: add it to the cache key in
@@ -1731,8 +1744,10 @@ What changed, and the rules that keep it fixed:
   Block, `/search*` + `/shop-by-*` outside India → Managed Challenge, one
   rate limit on `/search`, AI bots blocked, **Bot Fight Mode off** (it can
   challenge Shopify's webhooks). Change the script, not the dashboard.
-  Still dashboard-only: the Usage Based Billing notification and Web
-  Analytics (`docs/cloudflare-hosting.md` §5).
+  Credentials belong in ignored `.env.protection.local`. The broader edge
+  setup token is never uploaded to the Worker; only SHIELD_API_TOKEN is.
+  Still dashboard-only: billing alerts/spending limits and Web Analytics
+  (`docs/cloudflare-hosting.md`).
 
 # This is NOT the Next.js you know
 

@@ -221,31 +221,31 @@ manifest has no square icon.
 | Referrers | **42 in total** (Instagram 26, Google 15, Vercel 1). ~118,600 visitors arrived with none |
 | Ads | None running |
 
-What it was, and what it was not:
+Evidence and uncertainty (corrected 2026-11-18):
 
-- **Real browsers, not crawlers.** Web Analytics only counts clients that run
-  the page's JavaScript and send the beacon. That is also why Bot Protection
-  (§4) did nothing: it is built to let browsers through.
-- **Not Google.** Search-result clicks carry a `google.com` referrer; 15 did.
-- **Not the Shopify forwarding theme** (`docs/store-migration.md` Appendix
-  E). Its `location.replace` carries `shop.kozyliving.in` as the referrer;
-  none did.
-- **Most likely bought traffic** - a "website traffic" package, popunder
-  ads, or a residential-proxy browser bot - pointed at `/search`: no
-  referrer, one page per visit, near-total bounce, and the country mix such
-  traffic is sold from. Who sent it cannot be told from these numbers.
+- Analytics received client beacons. **This does not prove humans:** browser
+  automation can execute JavaScript, and analytics alone cannot identify it.
+- Missing referrers do not prove bought traffic or rule out search, apps,
+  redirects and privacy-stripped visits. Only 42 visitors had a recorded
+  referring source in the screenshots. The UTM view was paywalled, not empty.
+- The sudden concentration on search, high bounce, little product browsing
+  and corresponding resource spike are suspicious for automated or otherwise
+  low-quality traffic. Source, intent and who sent it remain unconfirmed;
+  request/firewall logs from that day are needed for attribution.
 - ~108 KB of origin transfer per `/search` render (13.2 GB / ~122K) and
   ~90 ms of CPU each, because `/search` reads `searchParams` and never comes
   from the CDN.
 
-Why no code change could have prevented the pause: even if every page were
-static, a first visit still pulls ~0.5 MB and ~30 files from the platform,
-so ~120K visitors is ~60 GB and ~3.6M requests in a day, against Hobby's
-100 GB and 1M **a month** (estimates). On Hobby, whoever controls the traffic
-controls whether the store is up. A second Hobby account would not help
-(Hobby is non-commercial-only, and dodging a pause with new accounts risks
-a ban), and Pro ($20/month) was declined. Hence Cloudflare Workers, where
-the same day costs nothing extra (`docs/cloudflare-hosting.md` §1).
+Caching and blocking at the edge can reduce resource use; the previous
+claim that no code change could prevent a pause was too strong. Rough
+estimates of 0.5 MB and 30 files per first visit are not measured incident
+totals. The actual suspension was explicitly for Fast Origin Transfer.
+Mumbai in that usage chart identifies the serving region, not the visitors.
+
+The Cloudflare migration is prepared in the repository, but it is not live
+merely because a runbook says so. Check `docs/cloudflare-hosting.md` for
+activation, tests, monitoring, metered costs and the remaining limitations.
+No plan or challenge guarantees that the store can never go down.
 
 Changed in code alongside the move: `/search` caps `q` at 80 characters, as
 `/api/search` already did (`MAX_QUERY_LENGTH` in `lib/constants.ts`). The

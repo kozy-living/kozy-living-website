@@ -163,6 +163,14 @@ test("a response that sets a cookie is never shared", async () => {
   assert.equal(cache.store.size, 0);
 });
 
+test("responses varying on unkeyed personal headers are not shared", async () => {
+  for (const vary of ["Cookie", "Authorization", "Accept-Language", "*"]) {
+    await withShopCache(get(`/search?q=${vary}`), ctx, async () => page("private", { headers: { "content-type": "text/html", vary } }));
+  }
+  await settle();
+  assert.equal(cache.store.size, 0);
+});
+
 test("only full-page shop GETs are cached", async () => {
   const r = renderer("x");
   const cases: Request[] = [
