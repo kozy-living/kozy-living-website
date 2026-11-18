@@ -12,5 +12,5 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["worker.ts", "shop-cache.ts", "shield.ts", "worker-configuration.d.ts"]
+  "include": ["worker.ts", "shop-cache.ts", "request-guard.ts", "shield.ts", "worker-configuration.d.ts"]
 }

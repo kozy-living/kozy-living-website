@@ -9,6 +9,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "kozy-living",
+  "account_id": "56423387779b6414bcdd7c411afa44a6",
   // Wraps OpenNext's `.open-next/worker.js` with the shop micro-cache and
   // the automatic shield (cloudflare/worker.ts).
   "main": "cloudflare/worker.ts",
@@ -24,6 +25,9 @@
   // (the Vercel preview hosts were exactly that).
   "workers_dev": false,
   "preview_urls": false,
+  "version_metadata": { "binding": "VERSION_METADATA" },
+  // Bound CPU per invocation; this is not a monthly spending limit.
+  "limits": { "cpu_ms": 1000 },
   "routes": [
     { "pattern": "kozyliving.in", "custom_domain": true },
     // Served by this worker only to be 308'd to the apex by next.config.js.
@@ -64,14 +68,12 @@
   // shield needs IS a secret: `npx wrangler secret put SHIELD_API_TOKEN`.
   "vars": {
     // Dashboard -> any page: the 32-hex id after dash.cloudflare.com/.
-    "CF_ACCOUNT_ID": "REPLACE_WITH_ACCOUNT_ID",
+    "CF_ACCOUNT_ID": "56423387779b6414bcdd7c411afa44a6",
     // Dashboard -> kozyliving.in -> Overview -> API -> Zone ID.
-    "CF_ZONE_ID": "REPLACE_WITH_ZONE_ID",
+    "CF_ZONE_ID": "2a858fc741db31cacd9645ef215b95ab",
     "SHIELD_SCRIPT_NAME": "kozy-living",
-    // Worker requests in 5 minutes that switch Under Attack on. ~36 a second,
-    // sustained: far above this shop's real traffic (the Nov 16 flood
-    // averaged ~425 per 5 min), low enough that a flood big enough to matter
-    // on the bill is cut off within 5-10 minutes.
-    "SHIELD_REQUESTS_PER_5MIN": "3000"
+    // One request/second averaged over 5 minutes. Below the Nov 16
+    // average (~425 page views/5 min); tune with real traffic and alerts.
+    "SHIELD_REQUESTS_PER_5MIN": "300"
   }
 }

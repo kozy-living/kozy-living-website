@@ -2,14 +2,12 @@
  * The automatic shield: Cloudflare's "Under Attack" mode, switched on by
  * traffic and off again by calm, every 5 minutes (cron in wrangler.jsonc).
  *
- * Workers never pause a site for usage, so a flood cannot take the store
- * down here - but Cloudflare has no hard spend cap either, and a flood that
- * gets past the WAF rules is billed per request and per CPU-millisecond.
- * This is the cap: when the Worker's request count in the last five minutes
+ * This is mitigation, NOT a spend cap or a guarantee of availability.
+ * Workers spending limits can stop requests, and traffic that passes the
+ * WAF is still billed. When requests in the last five minutes
  * passes SHIELD_REQUESTS_PER_5MIN, every visitor is shown Cloudflare's
  * browser check before the site (a few seconds, once per visitor), which
- * bought traffic and bots mostly never pass. Real shoppers get through; the
- * Worker stops being invoked for the rest.
+ * automated traffic may fail. Sophisticated browser bots may still pass.
  *
  * - It only ever lowers a level IT raised. If someone sets Under Attack by
  *   hand, or lowers it by hand while the shield holds it, the shield steps
@@ -27,6 +25,8 @@
  */
 
 export type ShieldState = {
+  lastCheckedAt?: number;
+  lastRequests?: number;
   /** When the shield raised the level it is holding now (ms); 0 = not holding. */
   raisedAt: number;
   /** The most recent raise, kept after lowering, to count strikes. */
@@ -125,6 +125,7 @@ const isPlaceholder = (value: string | undefined) => !value || value.startsWith(
 
 async function api<T>(env: ShieldEnv, path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API}${path}`, {
+    signal: AbortSignal.timeout(10_000),
     ...init,
     headers: {
       authorization: `Bearer ${env.SHIELD_API_TOKEN}`,
@@ -162,7 +163,11 @@ async function recentRequests(env: ShieldEnv, now: number): Promise<number> {
       },
     }),
   });
-  return (result.data.viewer.accounts[0]?.workersInvocationsAdaptive ?? []).reduce(
+  const rows = result.data?.viewer?.accounts?.[0]?.workersInvocationsAdaptive;
+  if (!Array.isArray(rows) || rows.some((row) => !Number.isFinite(row.sum?.requests) || row.sum.requests < 0)) {
+    throw new Error("Traffic analytics missing or malformed; refusing to treat it as calm");
+  }
+  return rows.reduce(
     (sum, row) => sum + (row.sum?.requests ?? 0),
     0,
   );
@@ -201,7 +206,7 @@ export async function runShield(env: ShieldEnv, now = Date.now()): Promise<void>
     return;
   }
 
-  const threshold = Number(env.SHIELD_REQUESTS_PER_5MIN) || 3000;
+  const threshold = Number(env.SHIELD_REQUESTS_PER_5MIN) || 300;
 
   try {
     const [state, level, requests] = await Promise.all([
@@ -217,11 +222,27 @@ export async function runShield(env: ShieldEnv, now = Date.now()): Promise<void>
 
     // Saved only after the API call succeeded, so a failed raise is retried
     // next round rather than remembered as done.
-    await saveState(env.NEXT_TAG_CACHE_D1, decision.state);
+    await saveState(env.NEXT_TAG_CACHE_D1, { ...decision.state, lastCheckedAt: now, lastRequests: requests });
 
     const log = decision.action === "none" ? console.log : console.warn;
     log(`shield: ${decision.action} - ${decision.reason}`);
   } catch (error) {
     console.error(`shield: skipped this round - ${(error as Error).message}`);
   }
+}
+
+/** No credentials or account identifiers are returned by the public probe. */
+export async function shieldHealth(env: ShieldEnv, now = Date.now()) {
+  const configured = !isPlaceholder(env.SHIELD_API_TOKEN) && !isPlaceholder(env.CF_ACCOUNT_ID) &&
+    !isPlaceholder(env.CF_ZONE_ID) && Boolean(env.NEXT_TAG_CACHE_D1);
+  let state: ShieldState | undefined;
+  if (configured) {
+    try {
+      const row = await env.NEXT_TAG_CACHE_D1!.prepare("SELECT state FROM kozy_shield WHERE id = 1").first<{ state: string }>();
+      if (row) state = JSON.parse(row.state) as ShieldState;
+    } catch { /* A missing table/failed database is unhealthy, not a success. */ }
+  }
+  const age = state?.lastCheckedAt ? now - state.lastCheckedAt : Infinity;
+  return { configured, healthy: configured && age >= 0 && age < 15 * 60_000,
+    lastCheckedAt: state?.lastCheckedAt ?? null, holding: Boolean(state?.raisedAt) };
 }

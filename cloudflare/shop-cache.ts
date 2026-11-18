@@ -28,7 +28,7 @@
  * anything that sets a cookie go straight through.
  */
 
-const SHOP_PATH = /^\/(?:search(?:\/[^/]+)?|shop-by-colour|shop-by-mood)\/?$/;
+import { SHOP_PATH, SEARCH_API, prepareRequest } from "./request-guard.ts";
 
 /** Served without re-rendering while younger than this. */
 const FRESH_MS = 60_000;
@@ -44,6 +44,10 @@ const NO_STORE = "private, no-cache, no-store, max-age=0, must-revalidate";
 
 /** Keys being re-rendered in the background by THIS isolate. */
 const refreshing = new Set<string>();
+const pending = new Map<string, Promise<Response>>();
+// Failed refreshes must not retry Shopify on every stale request.
+const retryAfter = new Map<string, number>();
+const MAX_REFRESHES = 16;
 
 type Render = (request: Request) => Promise<Response>;
 
@@ -69,18 +73,23 @@ function viewport(request: Request, url: URL): "m" | "d" {
 function cacheable(request: Request, url: URL): boolean {
   return (
     request.method === "GET" &&
-    SHOP_PATH.test(url.pathname) &&
+    (SHOP_PATH.test(url.pathname) || url.pathname === SEARCH_API) &&
+    !request.headers.has("authorization") &&
+    !request.headers.has("range") &&
+    !request.headers.has("x-nextjs-data") &&
     !request.headers.has("rsc") &&
     !request.headers.has("next-router-prefetch") &&
     !request.headers.has("next-action") &&
     !url.searchParams.has("_rsc") &&
-    (request.headers.get("accept") ?? "").includes("text/html")
+    (url.pathname === SEARCH_API || (request.headers.get("accept") ?? "").includes("text/html"))
   );
 }
 
-function keyFor(request: Request, url: URL): Request {
+function keyFor(request: Request, url: URL, version: string): Request {
   const key = new URL(url.pathname + url.search, url.origin);
+  key.searchParams.sort();
   key.searchParams.set("__kozy_vp", viewport(request, url));
+  key.searchParams.set("__kozy_build", version);
   return new Request(key.toString(), { method: "GET" });
 }
 
@@ -88,7 +97,8 @@ function storable(response: Response): boolean {
   return (
     response.status === 200 &&
     !response.headers.has("set-cookie") &&
-    (response.headers.get("content-type") ?? "").includes("text/html") &&
+    /^(?:text\/html|application\/json)\b/.test(response.headers.get("content-type") ?? "") &&
+    response.headers.get("vary") !== "*" &&
     response.body !== null
   );
 }
@@ -110,26 +120,47 @@ function forVisitor(response: Response, state: string): Response {
   return new Response(response.body, { status: response.status, headers });
 }
 
-async function renderAndStore(
+function renderAndStore(
   render: Render,
   request: Request,
   cache: Cache,
   key: Request,
   ctx: ExecutionContext,
 ): Promise<Response> {
-  const response = await render(request);
-  if (!storable(response)) return response;
-
-  const copy = response.clone();
-  ctx.waitUntil(cache.put(key, forStorage(copy, Date.now())).catch(() => {}));
-  return response;
+  let work = pending.get(key.url);
+  const owner = !work;
+  if (!work) {
+    work = render(request);
+    pending.set(key.url, work);
+    ctx.waitUntil(work.then(async (response) => {
+      if (storable(response)) {
+        await cache.put(key, forStorage(response.clone(), Date.now()));
+        retryAfter.delete(key.url);
+      } else {
+        if (retryAfter.size >= 1000) retryAfter.clear();
+        retryAfter.set(key.url, Date.now() + 30_000);
+      }
+    }).catch(() => {
+      if (retryAfter.size >= 1000) retryAfter.clear();
+      retryAfter.set(key.url, Date.now() + 30_000);
+    }).finally(() => {
+      pending.delete(key.url);
+      // All visitors and the cache own clones, so release the source branch.
+      void work!.then((response) => response.body?.cancel()).catch(() => {});
+    }));
+  }
+  return work.then((response) => owner || storable(response) ? response.clone() : render(request));
 }
 
 export async function withShopCache(
   request: Request,
   ctx: ExecutionContext,
   render: Render,
+  version = "local",
 ): Promise<Response> {
+  const prepared = prepareRequest(request);
+  if (prepared instanceof Response) return prepared;
+  request = prepared;
   const url = new URL(request.url);
   if (!cacheable(request, url)) return render(request);
 
@@ -138,14 +169,14 @@ export async function withShopCache(
   const cache = typeof caches === "undefined" ? undefined : caches.default;
   if (!cache) return render(request);
 
-  const key = keyFor(request, url);
+  const key = keyFor(request, url, version);
   const cached = await cache.match(key).catch(() => undefined);
 
   if (cached) {
     const age = Date.now() - Number(cached.headers.get(STORED_AT) ?? 0);
-    if (age < FRESH_MS) return forVisitor(cached, "HIT");
+    if (age >= 0 && age < (url.pathname === SEARCH_API ? 300_000 : FRESH_MS)) return forVisitor(cached, "HIT");
 
-    if (!refreshing.has(key.url)) {
+    if (!refreshing.has(key.url) && refreshing.size < MAX_REFRESHES && Date.now() >= (retryAfter.get(key.url) ?? 0)) {
       refreshing.add(key.url);
       ctx.waitUntil(
         renderAndStore(render, request.clone(), cache, key, ctx)

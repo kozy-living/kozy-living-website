@@ -33,7 +33,7 @@ const TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 // Expressions use only fields and functions the Free zone plan offers
 // (no regex, no bot score).
 
-const CUSTOM_RULES = [
+export const CUSTOM_RULES = [
   {
     ref: "kozy-skip-trusted",
     description:
@@ -64,11 +64,11 @@ const CUSTOM_RULES = [
   },
 ];
 
-const RATE_LIMIT_RULES = [
+export const RATE_LIMIT_RULES = [
   {
     ref: "kozy-ratelimit-search",
     description: "One address hammering the search: 30 requests in 10 s",
-    expression: 'starts_with(http.request.uri.path, "/search")',
+    expression: '(starts_with(http.request.uri.path, "/search") or starts_with(http.request.uri.path, "/shop-by-") or http.request.uri.path eq "/api/search" or http.request.uri.path eq "/api/revalidate" or http.request.uri.path eq "/api/protection-health") and not cf.client.bot',
     action: "block",
     ratelimit: {
       characteristics: ["cf.colo.id", "ip.src"],
@@ -144,7 +144,7 @@ function stable(value) {
   return value;
 }
 
-function diffRules(phase, live, wanted) {
+export function diffRules(phase, live, wanted) {
   const problems = [];
   wanted.forEach((rule, index) => {
     const found = live.find((r) => r.ref === rule.ref);
@@ -223,6 +223,9 @@ async function check(zone, { quiet = false } = {}) {
 // are still closing crashes Node on Windows (a libuv assertion, exit 127),
 // which would turn a clean "drift found" into a crash.
 const command = process.argv[2];
+// Importable by the security regression tests without contacting a live zone.
+const { pathToFileURL } = await import("node:url");
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
 if (!TOKEN) {
   console.error("Set CLOUDFLARE_API_TOKEN first (docs/cloudflare-hosting.md §5).");
   process.exitCode = 2;
@@ -237,4 +240,5 @@ if (!TOKEN) {
     console.error(error.message);
     process.exitCode = 1;
   }
+}
 }
