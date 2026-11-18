@@ -9,11 +9,14 @@
     "lint": "eslint .",
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "deploy": "npm run protection:config && npm run shield:check && npm run cf:check && opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types cloudflare/worker-configuration.d.ts",
-    "cf:check": "npm run cf-typegen && tsc -p cloudflare && node --test cloudflare/shield.test.ts cloudflare/shield-run.test.ts cloudflare/shop-cache.test.ts",
-    "shield:apply": "node scripts/cloudflare-shield.mjs apply",
-    "shield:check": "node scripts/cloudflare-shield.mjs check"
+    "cf:check": "npm run cf-typegen && tsc -p cloudflare && node --test cloudflare/*.test.ts scripts/*.test.mjs",
+    "shield:apply": "node --env-file-if-exists=.env.protection.local scripts/cloudflare-shield.mjs apply",
+    "shield:check": "node --env-file-if-exists=.env.protection.local scripts/cloudflare-shield.mjs check",
+    "protection:config": "node scripts/protection-config.mjs",
+    "protection:secrets": "node scripts/upload-worker-secrets.mjs",
+    "protection:live": "node scripts/store-check.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

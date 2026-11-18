@@ -4,7 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
-import { runShield, type ShieldEnv } from "./shield.ts";
+import { runShield, shieldHealth, type ShieldEnv } from "./shield.ts";
 
 function fakeD1() {
   const db = new DatabaseSync(":memory:");
@@ -95,4 +95,28 @@ test("placeholders from wrangler.jsonc mean 'not configured': no API calls", asy
 test("an API outage is a skipped round, never a thrown cron", async () => {
   globalThis.fetch = (async () => { throw new Error("network down"); }) as typeof fetch;
   await runShield(env(fakeD1()));
+});
+
+test("a Nov 16 sized flow triggers the production threshold and updates the health heartbeat", async () => {
+  const cf = fakeCloudflare({ level: "medium", requests: 425 });
+  const runtime = { ...env(fakeD1()), SHIELD_REQUESTS_PER_5MIN: "300" };
+  const now = Date.UTC(2026, 10, 18, 12);
+  assert.equal((await shieldHealth(runtime, now)).healthy, false);
+  await runShield(runtime, now);
+  assert.deepEqual(cf.patches, ["under_attack"]);
+  assert.equal((await shieldHealth(runtime, now)).healthy, true);
+  assert.equal((await shieldHealth(runtime, now + 16 * 60_000)).healthy, false);
+});
+
+test("missing analytics cannot drop protection or refresh the heartbeat", async () => {
+  const runtime = env(fakeD1());
+  fakeCloudflare({ level: "medium", requests: 9000 });
+  const now = Date.UTC(2026, 10, 18, 12);
+  await runShield(runtime, now);
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = ((input, init) => String(input).endsWith("/graphql")
+    ? Promise.resolve(Response.json({ data: { viewer: { accounts: [] } } }))
+    : originalFetch(input, init)) as typeof fetch;
+  await runShield(runtime, now + 3 * 60 * 60_000);
+  assert.equal((await shieldHealth(runtime, now + 3 * 60 * 60_000)).healthy, false);
 });

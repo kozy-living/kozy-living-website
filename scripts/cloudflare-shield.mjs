@@ -92,6 +92,7 @@ const BOT_SETTINGS = {
 
 async function cf(path, init = {}) {
   const response = await fetch(`${API}${path}`, {
+    signal: AbortSignal.timeout(15_000),
     ...init,
     headers: { authorization: `Bearer ${TOKEN}`, "content-type": "application/json" },
   });

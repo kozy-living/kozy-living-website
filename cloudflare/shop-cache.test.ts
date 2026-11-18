@@ -104,9 +104,48 @@ test("a 500 from a re-render does not replace the good copy", async () => {
   now += 61_000;
   assert.equal(await (await withShopCache(get("/search"), ctx, r.render)).text(), "good");
   await settle();
+  now += 31_000;
   assert.equal(await (await withShopCache(get("/search"), ctx, r.render)).text(), "good");
   await settle();
   assert.equal(await (await withShopCache(get("/search"), ctx, r.render)).text(), "better");
+});
+
+test("concurrent first visits render once, including random tracking parameters", async () => {
+  const r = renderer("shared");
+  const responses = await Promise.all(Array.from({ length: 30 }, (_, i) => withShopCache(get(`/search?utm_source=${i}`), ctx, r.render)));
+  assert.equal(r.calls(), 1);
+  for (const response of responses) assert.equal(await response.text(), "shared");
+  await settle();
+});
+
+test("a new deployment cannot reuse HTML from the preceding build", async () => {
+  const r = renderer("old", "new");
+  await withShopCache(get("/search"), ctx, r.render, "old-build"); await settle();
+  const next = await withShopCache(get("/search"), ctx, r.render, "new-build");
+  assert.equal(await next.text(), "new");
+  await settle();
+});
+
+test("authorization bypasses shared cache and personalized responses are not coalesced", async () => {
+  const r = renderer("public", "private");
+  await withShopCache(get("/search"), ctx, r.render); await settle();
+  const privateResponse = await withShopCache(get("/search", { authorization: "Bearer private" }), ctx, r.render);
+  assert.equal(await privateResponse.text(), "private");
+  let count = 0;
+  const personalized = async () => page(`visitor-${++count}`, { headers: { "content-type": "text/html", "set-cookie": `session=${count}` } });
+  const results = await Promise.all([1, 2].map(() => withShopCache(get("/search?q=private"), ctx, personalized)));
+  assert.notEqual(await results[0].text(), await results[1].text());
+  await settle();
+});
+
+test("search JSON is cached but RSC is never confused with HTML", async () => {
+  let calls = 0;
+  const render = async () => Response.json({ version: ++calls });
+  const req = () => new Request("https://kozyliving.in/api/search?q=robe");
+  await withShopCache(req(), ctx, render); await settle();
+  assert.deepEqual(await (await withShopCache(req(), ctx, render)).json(), { version: 1 });
+  await withShopCache(get("/search", { rsc: "1" }), ctx, render);
+  assert.equal(calls, 2);
 });
 
 test("an error with nothing cached is passed through, and not stored", async () => {

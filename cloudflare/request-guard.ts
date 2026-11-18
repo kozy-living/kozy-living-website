@@ -40,9 +40,41 @@ export async function withRenderBudget(request: Request, render: (request: Reque
   if (!SHOP_PATH.test(url.pathname) && url.pathname !== SEARCH_API) return render(request);
   if (active >= MAX_ACTIVE) return busyResponse();
   active++;
+  let released = false;
+  const release = () => { if (!released) { active--; released = true; } };
   try {
-    return await render(request);
-  } finally {
-    active--;
+    const response = await render(request);
+    if (!response.body) { release(); return response; }
+    // Rendering can continue after response headers. Keep the slot until
+    // the body finishes or the consumer disconnects, including RSC streams.
+    const reader = response.body.getReader();
+    const body = new ReadableStream<Uint8Array>({
+      async pull(controller) {
+        try {
+          const chunk = await reader.read();
+          if (chunk.done) { release(); controller.close(); }
+          else controller.enqueue(chunk.value);
+        } catch (error) { release(); controller.error(error); }
+      },
+      async cancel(reason) { release(); await reader.cancel(reason); },
+    });
+    return new Response(body, response);
+  } catch (error) {
+    release();
+    throw error;
   }
+}
+
+/** Reject forged calls at the cheap Worker boundary, before loading Next.
+ * The existing Shopify webhook contract uses a secret query parameter. */
+export async function webhookAuthorized(request: Request, secret: unknown): Promise<boolean> {
+  const candidate = new URL(request.url).searchParams.get("secret");
+  if (typeof secret !== "string" || !secret || !candidate || candidate.length > 256) return false;
+  const encoder = new TextEncoder();
+  const hashes = await Promise.all([candidate, secret].map((value) => crypto.subtle.digest("SHA-256", encoder.encode(value))));
+  const left = new Uint8Array(hashes[0]);
+  const right = new Uint8Array(hashes[1]);
+  let difference = 0;
+  for (let index = 0; index < left.length; index++) difference |= left[index] ^ right[index];
+  return difference === 0;
 }
