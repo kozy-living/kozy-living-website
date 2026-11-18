@@ -1,5 +1,5 @@
 /**
- * Micro-cache for the shop pages that Next renders on every request.
+ * Micro-cache for public shop HTML and search API JSON.
  *
  * `/search`, `/search/<collection>`, `/shop-by-colour` and `/shop-by-mood`
  * read `searchParams`, so they are `ƒ` routes: no ISR, no CDN, a full render
@@ -23,9 +23,11 @@
  *
  * Cache API reads and writes are free; they never touch R2.
  *
- * Only full-page HTML GETs are cached. Client navigations (`rsc` header,
+ * Only public HTML/JSON GETs are cached. Client navigations (`rsc` header,
  * `_rsc` param), prefetches, server actions (POST), redirects, 404s and
- * anything that sets a cookie go straight through.
+ * anything that sets a cookie or varies on an unkeyed header go through.
+ * Tracking parameters are removed before rendering; keys are separated by
+ * deployment so HTML never references another build's static chunks.
  */
 
 import { SHOP_PATH, SEARCH_API, prepareRequest } from "./request-guard.ts";

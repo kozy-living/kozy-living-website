@@ -183,3 +183,24 @@ tested by the merchant.
 
 Never promise "never down", "all bots blocked", "$5 maximum", or treat a
 successful local test as proof that live protection is active.
+
+## 6. Verification record (2026-11-18)
+
+- 37 Worker/script security tests passed; Worker TypeScript and ESLint passed.
+- Production Next/OpenNext build passed. Home/content/product routes retain
+  their intended static/ISR classification.
+- Wrangler deployment dry run packaged the protected entry point, version
+  metadata, D1/R2/Images bindings and assets successfully. This did not deploy.
+- Local workerd runtime: HTML and JSON requests showed MISS then HIT;
+  changing only a tracking value reused the same public copy. Forged
+  webhooks returned 403 and oversized browse URLs returned 414.
+- Desktop and phone browser checks rendered search/product pages without
+  page JavaScript errors; a colour filter URL rendered successfully.
+  Checkout, account authentication and successful real webhooks have not
+  been certified against a live Cloudflare deployment.
+- The monitor rendered home/search locally, then correctly failed on the
+  unconfigured shield's 503. A working page alone cannot pass this check.
+- Live activation remains pending: R2 enablement, Workers Paid confirmation,
+  scoped tokens, DNS record verification/delegation, secret upload, edge-rule
+  application, production deployment and monitoring setup. No live protection
+  or outage recovery is claimed until these checks pass.
