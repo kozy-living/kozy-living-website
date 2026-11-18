@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import Grid from "@/components/grid";
 import ProductGridItems from "@/components/layout/product-grid-items";
 import { Eyebrow, Headline } from "@/components/ui/section";
-import { sorting } from "@/lib/constants";
+import { MAX_QUERY_LENGTH, sorting } from "@/lib/constants";
 import {
   getCatalog,
   getCollectionProductOrder,
@@ -119,7 +119,12 @@ export default async function ShopView({
   searchParams: ShopSearchParams;
 }) {
   const params = toParamMap(searchParams);
-  const query = (params.get("q") ?? "").trim();
+  // Capped like `/api/search` (MAX_QUERY_LENGTH). This page prints the
+  // query in bold ("Results for ...") and sends it to Shopify, so an uncapped
+  // `?q=` is a free billboard for spam text on our domain and an unbounded
+  // input to a metered API. Nothing a shopper types into the overlay is
+  // longer than this.
+  const query = (params.get("q") ?? "").trim().slice(0, MAX_QUERY_LENGTH);
 
   const [catalog, collections, menu] = await Promise.all([
     getCatalog(),

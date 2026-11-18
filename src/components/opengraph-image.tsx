@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { site, hero } from "@/lib/site";
+import { SITE_URL } from "@/lib/site-url";
 import fs from "fs";
 import path from "path";
 
@@ -7,10 +8,26 @@ export type Props = {
   title?: string;
 };
 
-/** Read a file out of `public`, or null if it is not there. */
-function asset(...segments: string[]): Buffer | null {
+/**
+ * Read a file out of `public`, or null if it is not there.
+ *
+ * Off disk where there is a disk (`next dev`, the build, a Node server). On
+ * Cloudflare Workers there is none: `public/` is uploaded as static assets
+ * and `readFileSync` throws, so it falls back to fetching the same file from
+ * the site itself (`global_fetch_strictly_public` in wrangler.jsonc routes
+ * that through the zone to the assets, not back into this worker).
+ */
+async function asset(...segments: string[]): Promise<Buffer | null> {
   try {
     return fs.readFileSync(path.join(process.cwd(), "public", ...segments));
+  } catch {
+    // fall through to the network
+  }
+  try {
+    const response = await fetch(`${SITE_URL}/${segments.join("/")}`, {
+      signal: AbortSignal.timeout(5000),
+    });
+    return response.ok ? Buffer.from(await response.arrayBuffer()) : null;
   } catch {
     return null;
   }
@@ -32,8 +49,8 @@ function asset(...segments: string[]): Buffer | null {
  * Franxurter for a variable cut and the card quietly falls back instead of
  * going down.
  */
-function staticFont(...segments: string[]): Buffer | null {
-  const buffer = asset(...segments);
+async function staticFont(...segments: string[]): Promise<Buffer | null> {
+  const buffer = await asset(...segments);
   if (!buffer || buffer.length < 12) return null;
 
   try {
@@ -113,10 +130,10 @@ export default async function OpengraphImage(
      more. A page passes its own title and this default never applies. */
   const { title } = { ...{ title: site.tagline }, ...props };
 
-  const [display, photo] = [
+  const [display, photo] = await Promise.all([
     staticFont("font", "Franxurter.ttf"),
-    await socialPhoto(),
-  ];
+    socialPhoto(),
+  ]);
 
   const fonts = (
     display

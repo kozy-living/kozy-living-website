@@ -43,3 +43,8 @@ docs/old-env.txt
 next-env.d.ts
 
 DESIGN.md
+
+# cloudflare (OpenNext build output, wrangler state, local secrets)
+/.open-next/
+/.wrangler/
+.dev.vars*

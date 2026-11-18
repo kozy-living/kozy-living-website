@@ -9,9 +9,14 @@ The code-side rules are also in `CLAUDE.md` §17. Read this document for the
 **dashboard settings** as well: they live in Vercel, not in the repo, and
 nothing in git will tell you if one is switched off.
 
-**Status (2026-11-04, 15:37 IST):** redeployed on a new Vercel account. The
-bots are stopped, but at the current rate ISR Writes would pass the monthly
-limit: see *The remaining problem* in §5.
+**Status (2026-11-18): superseded.** Vercel paused the second account on
+2026-11-17 (until Dec 17) after a flood of ~118K browser visits on Nov 16
+(§9). The store is moving to Cloudflare Workers: `docs/cloudflare-hosting.md`.
+This file is kept as the record of both incidents.
+
+*Earlier status (2026-11-04, 15:37 IST):* redeployed on a new Vercel account.
+The bots are stopped, but at the current rate ISR Writes would pass the
+monthly limit: see *The remaining problem* in §5.
 
 ---
 
@@ -121,8 +126,14 @@ All three run flat through the night, so they do not follow shoppers. The
 logs show the homepage rebuilding every 2m 47-48s, a machine-regular interval.
 Nothing in the site's code runs on that timer, so something outside it is
 requesting `/`, and each request after the 60s TTL triggered a rebuild. What
-that requester is has not been confirmed. The suspects are two AWS addresses
-in California, `13.57.148.235` and `54.183.149.156`, whose traffic is regular.
+that requester is has not been confirmed. Two AWS addresses in California,
+`13.57.148.235` and `54.183.149.156`, were suspected, but the evidence does not
+support it. The Firewall Actions chart for `13.57.148.235` (Nov 3-4) shows
+bursts of ~43-127 requests per 15 minutes with hours of silence between them,
+not one request every 168s. `54.183.149.156` has a similar count and sparkline
+but has not been charted separately. That metric may leave out requests that
+were simply allowed, and a request has to get through the firewall to trigger
+a rebuild, so the requester may not appear in it at all.
 
 **Fixed in code:** the production TTL behind every Shopify fetch and the ISR
 `revalidate` values went from 60s to 900s. A request every 168s now rebuilds
@@ -197,3 +208,46 @@ manifest has no square icon.
   `_next/image` and files with an extension.
 - Do not turn off Bot Protection, AI Bots or the `robots.txt` Bypass rule,
   and keep the Bypass rule first.
+
+## 9. The second pause: Nov 16 (account 2)
+
+| | |
+| --- | --- |
+| Paused | 2026-11-17, for Fast Origin Transfer, until 2026-12-17 |
+| Usage | 13.2 GB Fast Origin Transfer in 30 days, ~12 GB of it on Nov 16; 98.2% `bom1`. Active CPU 3h 40m, ~3h of it on Nov 16 |
+| Web Analytics, 7 days | 118,645 visitors, 129,554 page views, 92% bounce (Nov 16 alone: 118,505 visitors) |
+| Pages | `/search` 94% (113K visitors, 122K views); `/search/[collection]` 6% (pet-collection 3.9K, pet-clothing, kessentials, bestsellers, bathrobes…); `/` 56 visitors; products 30 |
+| Countries | Pakistan 11K, Bangladesh 10K, India 8.7K, Brazil 8K, Argentina 6.3K, Vietnam 6K, South Africa 5K, Mexico 3.7K, Philippines 3.3K… |
+| Referrers | **42 in total** (Instagram 26, Google 15, Vercel 1). ~118,600 visitors arrived with none |
+| Ads | None running |
+
+What it was, and what it was not:
+
+- **Real browsers, not crawlers.** Web Analytics only counts clients that run
+  the page's JavaScript and send the beacon. That is also why Bot Protection
+  (§4) did nothing: it is built to let browsers through.
+- **Not Google.** Search-result clicks carry a `google.com` referrer; 15 did.
+- **Not the Shopify forwarding theme** (`docs/store-migration.md` Appendix
+  E). Its `location.replace` carries `shop.kozyliving.in` as the referrer;
+  none did.
+- **Most likely bought traffic** - a "website traffic" package, popunder
+  ads, or a residential-proxy browser bot - pointed at `/search`: no
+  referrer, one page per visit, near-total bounce, and the country mix such
+  traffic is sold from. Who sent it cannot be told from these numbers.
+- ~108 KB of origin transfer per `/search` render (13.2 GB / ~122K) and
+  ~90 ms of CPU each, because `/search` reads `searchParams` and never comes
+  from the CDN.
+
+Why no code change could have prevented the pause: even if every page were
+static, a first visit still pulls ~0.5 MB and ~30 files from the platform,
+so ~120K visitors is ~60 GB and ~3.6M requests in a day, against Hobby's
+100 GB and 1M **a month** (estimates). On Hobby, whoever controls the traffic
+controls whether the store is up. A second Hobby account would not help
+(Hobby is non-commercial-only, and dodging a pause with new accounts risks
+a ban), and Pro ($20/month) was declined. Hence Cloudflare Workers, where
+the same day costs nothing extra (`docs/cloudflare-hosting.md` §1).
+
+Changed in code alongside the move: `/search` caps `q` at 80 characters, as
+`/api/search` already did (`MAX_QUERY_LENGTH` in `lib/constants.ts`). The
+page prints the query in bold and sends it to Shopify, so an uncapped `q`
+was a billboard for spam text and an unbounded input to a metered API.

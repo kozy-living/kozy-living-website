@@ -7,9 +7,9 @@
  * template's `demo-next-store.pages.dev`, so search engines were pointed at
  * neither the real domain nor a list of its pages.
  *
- * `VERCEL_PROJECT_PRODUCTION_URL` is the production custom domain when one
- * is attached (kozyliving.in), so this is right on Vercel even without
- * `NEXT_PUBLIC_SITE_URL` set.
+ * `NEXT_PUBLIC_SITE_URL` is committed in `.env.production`, because it is
+ * inlined at build time and the Cloudflare build has nothing else to go on.
+ * `VERCEL_PROJECT_PRODUCTION_URL` is kept as a fallback for a Vercel build.
  */
 export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ||

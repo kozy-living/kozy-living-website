@@ -92,3 +92,10 @@ export const KIT_CONTAINER_TAG = "kozy-kit";
 export const KIT_ATTRIBUTE = "Kit";
 export const DEFAULT_OPTION = "Default Title";
 export const SHOPIFY_GRAPHQL_API_ENDPOINT = "/api/2026-07/graphql.json";
+
+/**
+ * The longest search query the site will act on, in `/api/search` and on the
+ * `/search` page alike. Long enough for any real search; anything past it is
+ * someone probing, or spam text looking for a page that will print it.
+ */
+export const MAX_QUERY_LENGTH = 80;

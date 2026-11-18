@@ -14,7 +14,6 @@ import LoadingScreen from "@/components/motion/loading-screen";
 import RouteProgress from "@/components/motion/route-progress";
 import NewsletterPopup from "@/components/newsletter/newsletter-popup";
 import { Suspense } from "react";
-import { Analytics } from "@vercel/analytics/next";
 import { site } from "@/lib/site";
 import { SITE_URL } from "@/lib/site-url";
 
@@ -61,6 +60,9 @@ const jakarta = localFont({
 });
 
 const baseUrl = SITE_URL;
+
+/** Cloudflare Web Analytics site token (Analytics & Logs → Web Analytics). */
+const CF_BEACON_TOKEN = process.env.NEXT_PUBLIC_CF_BEACON_TOKEN;
 
 const logoUrl = new URL("/logo/kozy-logo-web.png", baseUrl).toString();
 
@@ -209,10 +211,18 @@ export default function RootLayout({
             <NewsletterPopup />
           </CartProvider>
         </SmoothScrollProvider>
-        {/* Client-only beacon to /_vercel/insights; it reads the route on
-            the client (inside its own Suspense), so it does not make any
-            static route dynamic - see §17 in CLAUDE.md. */}
-        <Analytics />
+        {/* Cloudflare Web Analytics: free, no event quota (Vercel's ran out
+            in the Nov 16 flood). The token is public - it ships in the HTML
+            - and is inlined at build time from `.env.production`, so this
+            does not make any static route dynamic (CLAUDE.md §17). */}
+        {CF_BEACON_TOKEN ? (
+          <Script
+            id="cf-web-analytics"
+            strategy="afterInteractive"
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon={JSON.stringify({ token: CF_BEACON_TOKEN })}
+          />
+        ) : null}
       </body>
     </html>
   );

@@ -47,13 +47,19 @@ export function rateLimited(
 }
 
 /**
- * Best-effort caller identity. Behind a proxy the first hop in
- * `x-forwarded-for` is the visitor; everything else falls back to one shared
+ * Best-effort caller identity. Everything else falls back to one shared
  * "unknown" bucket, which is deliberately strict rather than permissive.
+ *
+ * `cf-connecting-ip` first: Cloudflare sets it to the visitor and overwrites
+ * any copy the client sent. `x-forwarded-for` is only APPENDED to there, so
+ * its first entry is whatever the client chose to put in it - a bot could
+ * rotate it to get a fresh bucket per request. (Vercel overwrote it, which
+ * is why it was enough there.)
  */
 export async function clientKey(): Promise<string> {
   const store = await headers();
   return (
+    store.get("cf-connecting-ip") ||
     store.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     store.get("x-real-ip") ||
     "unknown"

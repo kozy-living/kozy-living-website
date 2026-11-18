@@ -25,7 +25,8 @@ Dabu hand-block printing.
 | Styling | Tailwind 3.4 + a large hand-written `@layer components` in `globals.css` |
 | Commerce | Shopify Storefront GraphQL API (`/api/2026-07/graphql.json`) |
 | Motion | GSAP + ScrollTrigger, Lenis smooth scroll |
-| Commands | `npm run dev` · `npm run build` · `npm run lint` |
+| Hosting | Cloudflare Workers (Paid) via `@opennextjs/cloudflare` - moved off Vercel Hobby 2026-11-18 (§17, `docs/cloudflare-hosting.md`) |
+| Commands | `npm run dev` · `npm run build` · `npm run lint` · `npm run cf:preview` · `npm run deploy` |
 
 > ⚠️ **`README.md` is stale and actively misleading.** It describes a previous
 > incarnation of this project: a "Warm Ivory Oat / Terracotta / Amber Glow"
@@ -176,6 +177,12 @@ surfaces as a 500 on the route rather than as a catchable error. Both Jakarta
 files here are variable. `staticFont()` in that file reads the sfnt table
 directory and refuses anything carrying `fvar`, so a variable face degrades to
 the default rather than taking the route down.
+
+The font is read off disk where there is one (`next dev`, the build) and
+**fetched from `SITE_URL` on Cloudflare Workers**, which has no filesystem:
+`public/` is uploaded as static assets. So a card rendered at runtime needs
+the live site to answer `/font/Franxurter.ttf`; if it cannot, the card falls
+back to the default face rather than failing.
 
 If you touch the palette, these two files do not follow automatically:
 `src/components/opengraph-image.tsx` and `src/app/manifest.ts` (whose
@@ -444,7 +451,8 @@ downstream as badges and labels, and they were missed on the first pass.
   the whole catalogue newest-first directly. (The homepage Bestsellers rail
   used to ask for a non-existent `popular`; it now reads the merchant's
   `bestsellers` collection, in its Admin order.) A "No collection found" line
-  in the Vercel logs means a hard-coded handle has gone stale.
+  in the Worker logs (Cloudflare → Workers → kozy-living → Logs) means a
+  hard-coded handle has gone stale.
 
 ### Guard the handle, always
 
@@ -1547,11 +1555,48 @@ rules are `lib/shop/size-chart.ts`, the drawer
   the visible label and the link. Absolutely pinning the link against the
   fieldset ran it into the first row of pills below desktop.
 
-## 17. Caching and crawl budget — why the Hobby deployment was paused
+## 17. Hosting, caching and crawl budget
 
-The full incident record - including the **Vercel dashboard settings**
-(region, domains, firewall rules) that live outside the repo, the measured
-results and what is still open - is `docs/vercel-hosting.md`.
+**The store runs on Cloudflare Workers (Paid) through OpenNext** since
+2026-11-18. Setup, the Cloudflare dashboard settings that live outside the
+repo (WAF rules, rate limit, Web Analytics) and the cost model are
+`docs/cloudflare-hosting.md`. The two Vercel Hobby pauses that forced the
+move are `docs/vercel-hosting.md` (§1-8 the first, §9 the second).
+
+Why it moved: on 2026-11-16 ~118,600 real browsers with **no referrer**
+(bought traffic, most likely; 94% on `/search`, 92% bounce, nearly all from
+outside India) took ~12 GB of Fast Origin Transfer in a day, and Vercel
+paused the store for 30 days. They ran JavaScript, so Bot Protection let
+them through, and no amount of caching keeps a flood that size inside
+Hobby's monthly limits. Workers bills no bandwidth and charges overage
+instead of pausing.
+
+What the move put in the repo, and what it relies on:
+
+- `wrangler.jsonc` (bindings, domains; `workers_dev` / `preview_urls` OFF),
+  `open-next.config.ts` (R2 incremental cache behind the regional Cache API,
+  D1 tag cache for `revalidateTag`, memory queue), `public/_headers` (asset
+  cache headers - the assets binding answers before Next, so `headers()` in
+  `next.config.js` never sees those requests; keep the lists together).
+- **`NEXT_PUBLIC_SITE_URL` is committed in `.env.production`.** It is
+  inlined at build time and the Cloudflare build has no
+  `VERCEL_PROJECT_PRODUCTION_URL`; without it every canonical points at
+  localhost. Secrets are Worker secrets, never in that file.
+- **No filesystem at runtime.** Anything reading `public/` with `fs` must
+  fall back to fetching it (see the social card, §3).
+- **Client IP is `cf-connecting-ip`** (`lib/rate-limit.ts`). Cloudflare
+  appends to `x-forwarded-for`, so its first entry is client-controlled.
+- `www` → apex is a `has: host` redirect in `next.config.js` (it was a Vercel
+  dashboard setting). `wrangler dev` rewrites Host, so verify it live.
+- `/search` caps `q` at `MAX_QUERY_LENGTH` (80, `lib/constants.ts`), as
+  `/api/search` does: the page prints the query and sends it to Shopify.
+- The Next version must satisfy the adapter's peer range
+  (`>=16.4.5` on 16; it was 16.3.6 and the adapter refused).
+- Wrangler steps that ask a question hang in a non-interactive shell; set
+  `CI=true` there.
+
+The rules below come from the first pause (crawlers, Nov 2). They still
+apply: on Workers they keep the CPU bill small.
 
 Launched 2026-11-01; paused by Vercel on 2026-11-02 for **Fast Origin
 Transfer** (function → CDN bytes): ~40 GB against Hobby's 10 GB/month fair
@@ -1616,15 +1661,17 @@ What changed, and the rules that keep it fixed:
   a function invocation in front of every matched request. If one is ever
   added, its `matcher` must exclude `_next/static`, `_next/image`, and files
   with an extension.
-- **Vercel's image optimiser is for local files only** (`next.config.js`).
+- **Next's image optimiser is for local files only** (`next.config.js`; on
+  Cloudflare it runs through the `IMAGES` binding, metered per unique
+  transformation).
   Shopify photos go through `ShopImage` → Shopify's CDN, so
   `remotePatterns` lists only this project's two Shopify file prefixes
   (live `0978/6723/5641`, dev `0700/6476/7047` for the `site.ts` stills -
   **keep the dev store**). It used to allow every Shopify store's files and
   `**.myshopify.com`, i.e. a free resizer on our metered quota. WebP only,
   31-day cache, no 3840 width (a duplicate of the 2048 cap).
-- **`public/` files get a week of browser cache** (`headers()` in
-  `next.config.js`). Every hero film is on Shopify's CDN, including the
+- **`public/` files get a week of browser cache** (`public/_headers` on
+  Cloudflare, mirrored in `headers()` in `next.config.js`). Every hero film is on Shopify's CDN, including the
   first (`heroFilms` in `site.ts`; it was `public/media/hero-main.mp4`,
   6.3 MB on Vercel's bandwidth, until 2026-11-04). Do not put video in
   `public/`. Only the posters (`public/media/*-poster.jpg`) stay local.
@@ -1633,13 +1680,15 @@ What changed, and the rules that keep it fixed:
 - **Dynamic routes check `isPossibleHandle()`** (`lib/shopify/handle.ts`)
   before asking Shopify. `/[page]` is a root catch-all, so every scanner
   probe (`/wp-login.php`, `/.env`) lands there.
-- **Vercel Web Analytics** (`<Analytics />` from `@vercel/analytics/next`,
-  last in `<body>` in `layout.tsx`, added 2026-11-04). It is a client beacon
-  and wraps its own `useSearchParams` in Suspense, so the route table above
-  is unchanged (verified with `next build`). It only reports once Analytics
-  is enabled for the project in the Vercel dashboard. Hobby includes a
-  monthly event quota; custom `track()` events count against it.
-- **Preview deployments serve `Disallow: /`** (`VERCEL_ENV` in `robots.ts`).
+- **Cloudflare Web Analytics** replaced `@vercel/analytics` (whose Hobby
+  event quota the Nov 16 flood used up). A `next/script` beacon, last in
+  `<body>` in `layout.tsx`, rendered only when
+  `NEXT_PUBLIC_CF_BEACON_TOKEN` is set in `.env.production`. Inlined at
+  build time, so the route table above is unchanged (verified with
+  `next build`).
+- **No preview hosts.** `wrangler.jsonc` turns off `workers_dev` and
+  `preview_urls`. The `VERCEL_ENV` check in `robots.ts` (`Disallow: /` on a
+  Vercel preview) is kept for a Vercel build.
 - **The viewport-cookie bootstrap cannot loop.** It reloaded whenever the
   `kozy_is_mobile` cookie disagreed with the window, so a client that cannot
   keep cookies reloaded forever. It now reads the cookie back before
@@ -1654,12 +1703,15 @@ What changed, and the rules that keep it fixed:
   11h 1m against Hobby's 4h.
 - **Shopify side:** `shop.kozyliving.in` is Shopify's primary domain (and
   checkout) and runs the `Forward to headless` theme, which JS-redirects to
-  `kozyliving.in`. While Vercel is down that sends shoppers to a dead site.
-  The runtime Admin app holds nearly every Admin scope (themes, orders,
-  payments); the site needs only metaobjects + customers.
-- **Outside the repo (dashboard):** Firewall → Bot Protection and the AI Bots
-  managed ruleset on; function region `bom1` for Indian shoppers. Hobby is
-  for non-commercial use, so a live shop belongs on Pro with a spend limit.
+  `kozyliving.in`. While the site is down that sends shoppers to a dead
+  site. The runtime Admin app holds nearly every Admin scope (themes,
+  orders, payments); the site needs only metaobjects + customers. Its
+  `shop` CNAME must stay DNS-only (grey cloud) on Cloudflare.
+- **Outside the repo (Cloudflare dashboard):** WAF custom rules (scanner
+  probes → Block; `/search*` + `/shop-by-*` outside India → Managed
+  Challenge), one rate-limit rule on `/search`, Block AI bots on, **Bot Fight
+  Mode off** (it can challenge Shopify's webhooks). Exact expressions:
+  `docs/cloudflare-hosting.md` §5.
 
 # This is NOT the Next.js you know
 

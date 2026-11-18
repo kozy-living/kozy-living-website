@@ -37,7 +37,11 @@ module.exports = {
     })),
   },
   async headers() {
-    // Files in `public/` are served by Vercel's CDN with `max-age=0`, so a
+    // On Cloudflare, files in `public/` are served by the assets binding
+    // before Next runs, so THIS list never reaches them: `public/_headers`
+    // carries the same week there. Keep the two lists together.
+    //
+    // Files in `public/` were served by Vercel's CDN with `max-age=0`, so a
     // returning browser re-asks for every icon and poster on every visit. A
     // week is long enough to stop that, short enough that a replaced file
     // shows up. Hashed `/_next/static` assets already carry their own
@@ -57,6 +61,15 @@ module.exports = {
   },
   async redirects() {
     return [
+      // www is attached to the worker only to land here. On Vercel this was
+      // a dashboard setting; here it is code, so it cannot be lost with an
+      // account. The query string is carried over by Next.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.kozyliving.in" }],
+        destination: "https://kozyliving.in/:path*",
+        permanent: true,
+      },
       { source: "/journal", destination: "/blogs", permanent: true },
       { source: "/journal/:slug", destination: "/blogs", permanent: false },
       { source: "/about", destination: "/about-us", permanent: true },

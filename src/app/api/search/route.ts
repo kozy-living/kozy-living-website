@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getProducts, getCollections, getPages } from "@/lib/shopify";
+import { MAX_QUERY_LENGTH } from "@/lib/constants";
 
 export const runtime = "nodejs";
 
@@ -32,9 +33,6 @@ const CACHE_HEADERS = {
   "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=3600",
   "X-Robots-Tag": "noindex",
 };
-
-/** Long enough for any real search; a 5 KB `q` is someone probing. */
-const MAX_QUERY_LENGTH = 80;
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const q = (req.nextUrl.searchParams.get("q")?.trim() ?? "").slice(0, MAX_QUERY_LENGTH);
