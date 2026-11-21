@@ -71,6 +71,19 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/*?", "/api/", "/account"],
       },
       { userAgent: BLOCKED_BOTS, disallow: "/" },
+      // Meta's indexer walked /search 2,755 times in a day (2026-11-21,
+      // ~4,570 of ~9k external requests), and every page it fetched cost ~8
+      // internal cache operations. It is a verified bot, so the firewall's
+      // trusted-crawler skip lets it through; robots.txt is the lever it
+      // honours. Products and the home page stay open to it. A named group
+      // REPLACES `*` for that bot, so the `*` disallows are repeated here.
+      // `facebookexternalhit` (the link-preview fetcher behind Instagram and
+      // Facebook link cards) is deliberately NOT listed: it stays under `*`.
+      {
+        userAgent: "meta-webindexer",
+        allow: ["/", "/_next/"],
+        disallow: ["/search", "/shop-by-", "/*?", "/api/", "/account"],
+      },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,
     host: SITE_URL,

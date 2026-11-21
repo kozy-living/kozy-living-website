@@ -1,9 +1,17 @@
 # Cloudflare hosting and traffic protection
 
-Status checked on 2026-11-18: the Cloudflare account and zone exist, but the
-zone is pending nameserver delegation and the public domain still returns
-Vercel's `402 DEPLOYMENT_DISABLED`. Code in this repository is not evidence
-of a successful migration. Update this status after the live checks pass.
+Status on 2026-11-21: **live on Cloudflare.** Workers Paid subscribed; zone
+active (Hostinger nameservers -> aitana/memphis, DNSSEC off). DNS keeps
+Hostinger mail (MX, SPF, DMARC, 3 DKIM CNAMEs, autoconfig/autodiscover)
+and `shop` -> shops.myshopify.com, all DNS only; the Vercel apex/www
+records were deleted and the Worker's custom domains now own them. R2
+bucket created, D1 reused, 15 Worker secrets uploaded (live store
+`4nr8xa-3x`), edge rules applied and verified, first deploy version
+`93796c5a`. Verified through Cloudflare: home, /search, a product,
+robots.txt and sitemap 200; www 308 -> apex; shop cache MISS then HIT.
+Still to do: Shopify revalidation webhooks, the GitHub
+CLOUDFLARE_SHIELD_CHECK_TOKEN secret, billing alerts/spending limit, a
+manual checkout/login/forms pass, and removing the domain from Vercel.
 
 Shopify remains the commerce backend and checkout. The custom Next.js
 storefront is prepared for Cloudflare Workers Paid through OpenNext.

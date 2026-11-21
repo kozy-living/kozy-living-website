@@ -25,7 +25,7 @@ Dabu hand-block printing.
 | Styling | Tailwind 3.4 + a large hand-written `@layer components` in `globals.css` |
 | Commerce | Shopify Storefront GraphQL API (`/api/2026-07/graphql.json`) |
 | Motion | GSAP + ScrollTrigger, Lenis smooth scroll |
-| Hosting | Cloudflare Workers (Paid) migration prepared via `@opennextjs/cloudflare`; verify live status in `docs/cloudflare-hosting.md` (§17). |
+| Hosting | Cloudflare Workers (Paid) via `@opennextjs/cloudflare`, live since 2026-11-21; status and open items in `docs/cloudflare-hosting.md` (§17). |
 | Commands | `npm run dev` · `npm run build` · `npm run lint` · `npm run cf:preview` · `npm run deploy` |
 
 > ⚠️ **`README.md` is stale and actively misleading.** It describes a previous
@@ -1557,9 +1557,9 @@ rules are `lib/shop/size-chart.ts`, the drawer
 
 ## 17. Hosting, caching and crawl budget
 
-**The store is prepared for Cloudflare Workers (Paid) through OpenNext.**
-Do not infer live migration from this code: on 2026-11-18 the domain still
-returned Vercel's DEPLOYMENT_DISABLED and the Cloudflare zone was pending.
+**The store runs on Cloudflare Workers (Paid) through OpenNext** - live
+since 2026-11-21 (zone active, first deploy verified). What is still
+outstanding is listed at the top of `docs/cloudflare-hosting.md`.
 Setup, protection verification and the cost model are
 `docs/cloudflare-hosting.md`. The two Vercel Hobby pauses that forced the
 move are `docs/vercel-hosting.md` (§1-8 the first, §9 the second).
@@ -1678,7 +1678,12 @@ What changed, and the rules that keep it fixed:
   `/search/[collection]`, `/shop-by-*`, `/kit-builder`).
 - **Crawlers stay off query strings.** `robots.ts` disallows `/*?` (with
   `/_next/` allowed back, or Googlebot cannot render), `/api/` and `/account`,
-  and turns away AI-training and SEO-tool crawlers. Every query-driven page
+  and turns away AI-training and SEO-tool crawlers. `meta-webindexer` is
+  also kept off `/search` and `/shop-by-` (2026-11-21: it was ~half of all
+  external requests, and verified bots skip the firewall);
+  `facebookexternalhit` is not, or Instagram link cards lose their preview.
+  In Account Analytics, `cache.local` rows are the Worker's own Cache API
+  traffic, not visitors, and their 504s are cache misses. Every query-driven page
   builds its metadata with `queryPageMetadata()` (`lib/shop/seo.ts`):
   canonical to the bare page, and `noindex, nofollow` once any parameter is
   set. Filter, sort and page links carry `rel="nofollow"`. `SITE_URL`
