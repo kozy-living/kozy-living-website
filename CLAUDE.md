@@ -1620,6 +1620,12 @@ What the move put in the repo, and what it relies on:
   appends to `x-forwarded-for`, so its first entry is client-controlled.
 - `www` → apex is a `has: host` redirect in `next.config.js` (it was a Vercel
   dashboard setting). `wrangler dev` rewrites Host, so verify it live.
+- **Old Shopify URLs redirect** (`next.config.js`, 2026-11-23):
+  `/products/:handle` → `/product/:handle`, `/collections/all` → `/search`,
+  `/collections/:handle` → `/search/:handle`, `/cdn/shop/*` →
+  `shop.kozyliving.in/cdn/shop/*`. Meta's catalog/ads crawlers and old posts
+  still use those shapes on this domain; they were 404ing. Keep
+  `/collections/all` above the general rule.
 - `/search` caps `q` at `MAX_QUERY_LENGTH` (80, `lib/constants.ts`), as
   `/api/search` does: the page prints the query and sends it to Shopify.
 - The Next version must satisfy the adapter's peer range

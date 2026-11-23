@@ -73,6 +73,24 @@ module.exports = {
       { source: "/journal", destination: "/blogs", permanent: true },
       { source: "/journal/:slug", destination: "/blogs", permanent: false },
       { source: "/about", destination: "/about-us", permanent: true },
+      // Old Shopify-theme URLs. kozyliving.in used to be the Shopify store,
+      // and Meta's catalog/ads crawlers (meta-externalads,
+      // facebookexternalhit) and old posts still link to these shapes; they
+      // 404'd after the move to the headless store (Cloudflare analytics,
+      // 2026-11-23). A redirect is answered without rendering a page.
+      { source: "/products/:handle", destination: "/product/:handle", permanent: true },
+      // `all` is Shopify's every-product collection; ours is the bare
+      // /search. It must come before the general rule, or it lands on
+      // /search/all, which 404s (unknown collections 404 by design).
+      { source: "/collections/all", destination: "/search", permanent: true },
+      { source: "/collections/:handle", destination: "/search/:handle", permanent: true },
+      // Product photographs still live on Shopify's CDN, served under the
+      // Shopify domain (shop.kozyliving.in) rather than this one.
+      {
+        source: "/cdn/shop/:path*",
+        destination: "https://shop.kozyliving.in/cdn/shop/:path*",
+        permanent: true,
+      },
     ];
   },
 };
