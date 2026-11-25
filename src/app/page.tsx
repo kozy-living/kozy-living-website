@@ -264,7 +264,7 @@ function Hero() {
                 href={hero.secondary.href}
                 icon="down"
                 variant="solid"
-                className="action-btn-ivory-well"
+                className="action-btn-ivory-well khristmas-hero-cta"
               />
             </div>
           </div>

@@ -204,7 +204,7 @@ export default function MobileMenu({ menu }: { menu: Menu[] }) {
                                     href={child.path}
                                     onClick={close}
                                     aria-current={isHere(child.path, pathname) ? "page" : undefined}
-                                    className={clsx("drawer-tile", child.title === "Pillow Talk Capsule Collection" && "christmas-menu-link")}
+                                    className="drawer-tile"
                                   >
                                     {child.title}
                                   </Link>
