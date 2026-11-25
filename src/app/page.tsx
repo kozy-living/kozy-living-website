@@ -218,7 +218,7 @@ function Hero() {
         {/* ------------------------------------------------------- feature */}
         <Plate
           aspect={null}
-          video="/media/pillow-talk-hero.mp4"
+          video="/media/laddu-khristmas-hero.mp4"
           videoControls
           tone={2}
           placeholderText="kozy"
@@ -291,9 +291,7 @@ function Hero() {
         </div>
 
         {/* ---------------------------------------------------- two closers */}
-        <Suspense fallback={<HeroTileFallbacks />}>
-          <HeroProductTiles />
-        </Suspense>
+        <HeroProductTiles />
       </div>
 
       {/* The wordmark band. It used to live inside the frame; the bento has no
@@ -313,59 +311,18 @@ function Hero() {
   );
 }
 
-/** One lead image per product first, then alternate shots, with no duplicates. */
-function collectionGallery(products: Product[], limit = 8) {
-  const ordered = [
-    ...products.map((product) => product.featuredImage),
-    ...products.flatMap((product) => product.images),
-  ];
-  const seen = new Set<string>();
-
-  return ordered
-    .filter((image) => {
-      if (!image?.url || seen.has(image.url)) return false;
-      seen.add(image.url);
-      return true;
-    })
-    .slice(0, limit);
-}
-
-async function HeroProductTiles() {
-  const collections = await Promise.all(
-    hero.tiles.map((tile) =>
-      getCollectionProducts({ collection: tile.handle }).catch(() => []),
-    ),
-  );
-  const needsFallback = collections.some((products) => !products.length);
-  const fallback = needsFallback
-    ? await getProducts({ sortKey: "BEST_SELLING" }).catch(() => [])
-    : [];
-
+function HeroProductTiles() {
   return hero.tiles.map((tile, index) => {
-    const products = collections[index]?.length
-      ? collections[index]!
-      : fallback;
-    const liveGallery = collectionGallery(products);
-    const tileFallback = "images" in tile && Array.isArray(tile.images)
-      ? (tile.images as readonly string[]).map((url) => ({ url, altText: tile.tag }))
-      : [];
-    const gallery = liveGallery.length >= 2 ? liveGallery : tileFallback.length ? tileFallback : liveGallery;
-
     return (
       <Link
         key={tile.tag}
-        href={collections[index]?.length ? `/search/${tile.handle}` : "/search"}
+        href={`/search/${tile.handle}`}
         className={clsx(index === 0 ? "bento-one" : "bento-two")}
         prefetch={false}
       >
         <Plate
           aspect={null}
-          gallery={gallery}
-          galleryAuto={Boolean(gallery && gallery.length > 1)}
-          galleryDelay={index * 1600}
-          galleryInterval={4000}
-          showIndicators={true}
-          // First viewport on desktop - the only reels on the page that are.
+          src={tile.image}
           priority
           tone={index === 0 ? 0 : 3}
           tag={tile.tag}
@@ -380,25 +337,6 @@ async function HeroProductTiles() {
       </Link>
     );
   });
-}
-
-function HeroTileFallbacks() {
-  return hero.tiles.map((tile, index) => (
-    <Plate
-      key={tile.tag}
-      aspect={null}
-      tone={index === 0 ? 0 : 3}
-      tag={tile.tag}
-      placeholderText={index === 0 ? "kraft" : "rest"}
-      arrow
-      arrowTone={index === 0 ? "card" : "sage"}
-      className={clsx(
-        "group h-full w-full",
-        index === 0 ? "bento-one" : "bento-two",
-      )}
-      reveal={false}
-    />
-  ));
 }
 
 /* ------------------------------------------------- statement + lookbook */

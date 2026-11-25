@@ -11,7 +11,7 @@ import { UserIcon } from "@heroicons/react/24/outline";
 import HeaderHeight from "./header-height";
 
 const christmasLink: Menu = {
-  title: "Christmas Collection 🎁",
+  title: "Khristmas Collection 🎁",
   path: pillowTalkPath,
 };
 
@@ -38,7 +38,7 @@ export async function Navbar() {
   // the sign-in panel to a signed-out visitor.
   const menu = await getPrimaryMenu();
   const headerMenu = menu
-    .filter((item) => !/^christmas(?: collection)?(?: 🎁)?$/i.test(item.title.trim()))
+    .filter((item) => !/^[ck]hristmas(?: collection)?(?: 🎁)?$/i.test(item.title.trim()))
     .flatMap((item) => {
       if (item.path !== "/search") return [item];
       const children = (item.items ?? []).filter(

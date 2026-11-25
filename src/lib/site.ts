@@ -224,35 +224,25 @@ export const hero = {
    * spelled it correctly.
    */
   statement: {
-    lines: ["Kraft-led &", "Konscious", "textiles for", "Christmas rituals"],
+    lines: ["Kraft-led &", "Konscious", "textiles for", "Khristmas rituals"],
     /** Ringed by the hand-drawn ellipse. Must appear in `lines` verbatim. */
-    circled: "Christmas rituals",
+    circled: "Khristmas rituals",
   },
   /** The two small plates that close the bento. */
   tiles: [
     {
       tag: "#KESSENTIALS",
       handle: "kessentials",
-      images: [
-        "https://cdn.shopify.com/s/files/1/0700/6476/7047/files/IMG_1675.jpg?v=1788636340",
-        "https://cdn.shopify.com/s/files/1/0700/6476/7047/files/IMG_1695.png?v=1788636343",
-        "https://cdn.shopify.com/s/files/1/0700/6476/7047/files/IMG_1677.jpg?v=1788636340",
-      ],
+      image: "/media/laddu-kessentials.webp",
     },
     {
       tag: "#KRAFTEDKOMPANIONS",
-      // Was `kozy-lounge`, which the store has never had: the tile fell back
-      // to bestseller photographs and a bare /search link.
       handle: "krafted-by-kozy",
-      images: [
-        "https://cdn.shopify.com/s/files/1/0700/6476/7047/files/900E9CCD-5302-4863-A642-251A2207515C.jpg?v=1788636354",
-        "https://cdn.shopify.com/s/files/1/0700/6476/7047/files/85aeb9ef-fd0d-4cf2-a72f-af881a17b4fb.jpg?v=1788636352",
-        "https://cdn.shopify.com/s/files/1/0700/6476/7047/files/IMG_1033.jpg?v=1788636330",
-      ],
+      image: "/media/laddu-krafted.webp",
     },
   ],
   primary: { label: "Shop Pillow Talk", href: pillowTalkPath },
-  secondary: { label: "Explore Christmas", href: "#statement" },
+  secondary: { label: "Explore Khristmas", href: "#statement" },
   /** The circular button that sits on the feature photograph. */
   circle: { label: "Shop now", href: "/search" },
   /** Set in the display face in the band below the frame. The O is the
