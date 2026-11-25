@@ -143,13 +143,7 @@ export default function MobileMenu({ menu }: { menu: Menu[] }) {
                             aria-current={isHere(item.path, pathname) ? "page" : undefined}
                             className="drawer-row"
                           >
-                            <span
-                              className={clsx(
-                                "drawer-title",
-                                here && "is-here",
-                                item.title === "Christmas" && "text-[#a31d2d]"
-                              )}
-                            >
+                            <span className={clsx("drawer-title", here && "is-here", item.title === "Christmas Collection 🎁" && "christmas-menu-link rounded-lg")}>
                               {item.title}
                             </span>
                             <ArrowUpRightIcon aria-hidden className="drawer-row-icon" />
@@ -210,7 +204,7 @@ export default function MobileMenu({ menu }: { menu: Menu[] }) {
                                     href={child.path}
                                     onClick={close}
                                     aria-current={isHere(child.path, pathname) ? "page" : undefined}
-                                    className="drawer-tile"
+                                    className={clsx("drawer-tile", child.title === "Pillow Talk Capsule Collection" && "christmas-menu-link")}
                                   >
                                     {child.title}
                                   </Link>

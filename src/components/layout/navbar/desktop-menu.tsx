@@ -37,7 +37,6 @@ export default function DesktopMenu({ menu }: { menu: Menu[] }) {
         const hasChildren = Boolean(item.items?.length);
         const isOpen = openTitle === item.title;
         const current = isCurrent(item);
-        const seasonal = item.title === "Christmas";
 
         return (
           <li
@@ -59,8 +58,9 @@ export default function DesktopMenu({ menu }: { menu: Menu[] }) {
               aria-current={current ? "page" : undefined}
               className={clsx(
                 "inline-flex items-center gap-1 whitespace-nowrap py-2 text-[0.8125rem] font-medium transition-colors",
-                !seasonal && (current ? "text-ink" : "text-ink/70 hover:text-ink"),
-                seasonal && "font-semibold text-[#a31d2d] hover:text-[#741320]"
+                item.title === "Christmas Collection 🎁"
+                  ? "christmas-menu-link rounded-lg"
+                  : current ? "text-ink" : "text-ink/70 hover:text-ink"
               )}
             >
               {item.title}
@@ -115,7 +115,12 @@ export default function DesktopMenu({ menu }: { menu: Menu[] }) {
                     <li key={child.title}>
                       <Link
                         href={child.path}
-                        className="block whitespace-nowrap rounded-xl px-3 py-2 text-ui text-ink/80 transition-colors hover:bg-wash hover:text-ink"
+                        className={clsx(
+                          "block whitespace-nowrap rounded-xl px-3 py-2 text-ui transition-colors hover:bg-wash",
+                          child.title === "Pillow Talk Capsule Collection"
+                            ? "christmas-menu-link"
+                            : "text-ink/80 hover:text-ink"
+                        )}
                       >
                         {child.title}
                       </Link>

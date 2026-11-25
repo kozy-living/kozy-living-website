@@ -5,20 +5,25 @@ import DesktopMenu from "./desktop-menu";
 import SearchTrigger from "./search";
 import LogoSquare from "@/components/logo-square";
 import CartModal from "@/components/cart/modal";
-import { announcement, site } from "@/lib/site";
+import { announcement, pillowTalkPath, site } from "@/lib/site";
 import Link from "@/components/ui/intent-link";
 import { UserIcon } from "@heroicons/react/24/outline";
 import HeaderHeight from "./header-height";
 
 const christmasLink: Menu = {
-  title: "Christmas",
-  path: "/search/pillow-talk",
+  title: "Christmas Collection 🎁",
+  path: pillowTalkPath,
+};
+
+const pillowTalkLink: Menu = {
+  title: "Pillow Talk Capsule Collection",
+  path: pillowTalkPath,
 };
 
 /**
  * Header: a quiet announcement line over the navigation.
  *
- * Shopify supplies the primary menu. The seasonal link is appended to the header.
+ * Shopify supplies the primary menu. The seasonal links follow Shop and appear inside its dropdown.
  *
  * LAYOUT NOTE: the mark is optically centred below `lg` and moves to the left
  * rail at `lg` and up. A seven-item menu with two flyouts simply does not fit
@@ -32,9 +37,15 @@ export async function Navbar() {
   // RootLayout). The account link always goes to `/account`, which shows
   // the sign-in panel to a signed-out visitor.
   const menu = await getPrimaryMenu();
-  const headerMenu = menu.length
-    ? [...menu.filter((item) => item.title.trim().toLowerCase() !== "christmas"), christmasLink]
-    : menu;
+  const headerMenu = menu
+    .filter((item) => !/^christmas(?: collection)?(?: 🎁)?$/i.test(item.title.trim()))
+    .flatMap((item) => {
+      if (item.path !== "/search") return [item];
+      const children = (item.items ?? []).filter(
+        (child) => child.title.trim().toLowerCase() !== pillowTalkLink.title.toLowerCase()
+      );
+      return [{ ...item, items: [...children, pillowTalkLink] }, christmasLink];
+    });
 
   return (
     <header
@@ -42,11 +53,11 @@ export async function Navbar() {
       className="sticky top-0 z-[999] bg-paper/95 backdrop-blur-md"
     >
       <HeaderHeight />
-      {/* Full-bleed indigo, so the strip reads as a band rather than as a
-          line of muted copy floating above the nav. Ivory on indigo is 11.73. */}
-      <div className="bg-indigo">
+      <div className="holiday-announcement">
         <div className="shell py-2 text-center">
-          <p className="text-spec text-paper/85">{announcement}</p>
+          <Link href={pillowTalkPath} className="holiday-announcement-link text-spec text-paper">
+            {announcement}
+          </Link>
         </div>
       </div>
 

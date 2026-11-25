@@ -189,7 +189,8 @@ export const founderReel = [
  */
 
 /** The quiet line above the header. */
-export const announcement = "Reimagined Indian kraft for everyday";
+export const pillowTalkPath = "/search/pillow-talk";
+export const announcement = "Pillow Talk – Holiday Capsule Kollection is live ✨";
 
 /* ------------------------------------------------------------------ homepage
    The sections below map one-to-one onto the homepage layout, in page order.
@@ -211,7 +212,7 @@ export const hero = {
    * Kept beside `flag` rather than derived from it: the social card (which
    * cannot read this layout) still wants the sentence whole.
    */
-  flagMark: { lead: "Handkrafted", place: "by Indian kraft klusters" },
+  flagMark: { lead: "Holiday Capsule Kollection", place: "by Kozy Living" },
   blurb:
     "Kozy Living Textiles are your in-between Kompanions - krafted from 100% natural fibres to turn everyday moments into mindful daily rituals.",
   /**
@@ -223,9 +224,9 @@ export const hero = {
    * spelled it correctly.
    */
   statement: {
-    lines: ["Kraft-led & Konscious", "textiles for", "everyday rituals"],
+    lines: ["Kraft-led & Konscious", "textiles for", "Christmas rituals"],
     /** Ringed by the hand-drawn ellipse. Must appear in `lines` verbatim. */
-    circled: "everyday rituals",
+    circled: "Christmas rituals",
   },
   /** The two small plates that close the bento. */
   tiles: [
@@ -250,8 +251,8 @@ export const hero = {
       ],
     },
   ],
-  primary: { label: "Shop Kompanions", href: "/search" },
-  secondary: { label: "Our story", href: "/about-us" },
+  primary: { label: "Shop Pillow Talk", href: pillowTalkPath },
+  secondary: { label: "Explore Christmas", href: "#statement" },
   /** The circular button that sits on the feature photograph. */
   circle: { label: "Shop now", href: "/search" },
   /** Set in the display face in the band below the frame. The O is the
@@ -279,13 +280,13 @@ export const hero = {
  * nothing free to hand out.
  */
 export const heroFilms = [
+  "https://cdn.shopify.com/videos/c/o/v/3329bb6694284f05be3d3ff8a0bb6f22.mp4",
   // H.264/fast-start rendition of the 46.3 MB HEVC original (6.3 MB): it
   // starts reliably across browsers and costs far less to decode. It lived in
   // public/media until 2026-11-04, which put every play on Vercel's metered
   // bandwidth; this is the same file uploaded to Shopify. Do not swap it back
   // for the HEVC original.
   "https://cdn.shopify.com/videos/c/o/v/e1c708f50e1b4e5badb08fb0d360e217.mp4",
-  "https://cdn.shopify.com/videos/c/o/v/3329bb6694284f05be3d3ff8a0bb6f22.mp4",
   "https://cdn.shopify.com/videos/c/o/v/65fa358ea2ec488f9c62e7f86d758f3c.mp4",
   "https://cdn.shopify.com/videos/c/o/v/e78b76a026054863975d667b63071a21.mp4",
   "https://cdn.shopify.com/videos/c/o/v/d761713a789d44c3bb7f5b6686912560.mp4",

@@ -6611,3 +6611,53 @@ html:has([data-loader]) body {
     width: auto;
   }
 }
+
+/* A soft background pulse keeps the seasonal link readable. */
+.christmas-menu-link {
+  color: #a31d2d;
+  font-weight: 650;
+  background-color: #f7dedf;
+  animation: christmas-menu-glow 2s ease-in-out infinite;
+}
+
+.christmas-menu-link:hover,
+.christmas-menu-link:focus-visible {
+  color: #741320;
+  animation-play-state: paused;
+}
+
+@keyframes christmas-menu-glow {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: #f7dedf; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .christmas-menu-link {
+    animation: none;
+  }
+}
+
+.holiday-announcement {
+  overflow: hidden;
+  background: #740e20;
+}
+
+.holiday-announcement-link {
+  display: inline-block;
+  animation: holiday-marquee 16s ease-in-out infinite;
+}
+
+.holiday-announcement-link:hover,
+.holiday-announcement-link:focus-visible {
+  animation-play-state: paused;
+}
+
+@keyframes holiday-marquee {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(clamp(0px, 8vw - 32px, 80px)); }
+  75% { transform: translateX(calc(-1 * clamp(0px, 8vw - 32px, 80px))); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holiday-announcement-link { animation: none; }
+}
