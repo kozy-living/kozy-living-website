@@ -2,6 +2,7 @@ import clsx from "clsx";
 import Image from "@/components/ui/shop-image";
 import CornerArrow from "./arrow-badge";
 import ClipRotator from "./clip-rotator";
+import HeroVideo from "./hero-video";
 import ProductImageRotator from "./product-image-rotator";
 
 /**
@@ -280,6 +281,8 @@ export default function Plate({
               poster={videoPoster}
               className={mediaClass}
             />
+          ) : video && videoControls ? (
+            <HeroVideo clips={[{ src: video, poster: videoPoster }]} className={mediaClass} />
           ) : video ? (
             <video
               src={video}

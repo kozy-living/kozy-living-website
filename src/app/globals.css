@@ -6661,3 +6661,67 @@ html:has([data-loader]) body {
 @media (prefers-reduced-motion: reduce) {
   .holiday-announcement-link { animation: none; }
 }
+
+/* Seasonal homepage art uses the site's display face and existing bento. */
+.christmas-hero-title {
+  position: relative;
+  color: #740e20;
+  font-size: min(9.7cqi, 4.5rem);
+  line-height: 1.12;
+  text-transform: uppercase;
+}
+
+.christmas-hero-title path {
+  stroke: currentColor;
+}
+
+.christmas-hero-ribbon {
+  position: absolute;
+  top: 7%;
+  right: 6%;
+  width: 21%;
+  height: auto;
+  max-width: 10rem;
+  pointer-events: none;
+}
+
+.hero-bento > .bento-feature video {
+  object-position: center 60%;
+}
+
+.hero-bento > .bento-feature button[aria-pressed] {
+  top: 1rem;
+  right: 1rem;
+  bottom: auto;
+  z-index: 30;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: #740e20;
+  color: #fff6e8;
+}
+
+.hero-bento > .bento-feature .action-btn-ivory-well {
+  background-color: #740e20;
+}
+
+@media (max-width: 1023px) {
+  .hero-bento:has(.christmas-hero-statement) {
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "feature feature"
+      "say say"
+      "one two";
+  }
+  .christmas-hero-title {
+    font-size: min(9.7cqi, 4rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .christmas-hero-statement {
+    container-type: size;
+  }
+  .christmas-hero-title {
+    font-size: min(9.7cqi, 21cqb, 4.5rem);
+  }
+}

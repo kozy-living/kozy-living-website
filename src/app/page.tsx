@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import Image from "next/image";
 import Link from "@/components/ui/intent-link";
 import { Suspense } from "react";
 import {
@@ -59,7 +60,6 @@ import {
   featureBand,
   guidesFeature,
   hero,
-  heroFilms,
   lookbook,
   journalPosts,
   shopByMood,
@@ -195,7 +195,6 @@ async function productsFrom(
 function ringWord(
   line: string,
   phrase: string,
-  tone?: "deep" | "sage" | "white",
 ) {
   const at = line.indexOf(phrase);
   if (at === -1) return line;
@@ -203,7 +202,7 @@ function ringWord(
   return (
     <>
       {line.slice(0, at)}
-      <CircledWord tone={tone}>{phrase}</CircledWord>
+      <CircledWord>{phrase}</CircledWord>
       {line.slice(at + phrase.length)}
     </>
   );
@@ -219,15 +218,12 @@ function Hero() {
         {/* ------------------------------------------------------- feature */}
         <Plate
           aspect={null}
-          videos={heroFilms}
-          videoStart={0}
+          video="/media/pillow-talk-hero.mp4"
           videoControls
-          videoPoster="/media/hero-main-poster.jpg"
           tone={2}
           placeholderText="kozy"
           className="bento-feature group h-full w-full"
           sizes="(min-width: 1024px) 55vw, 100vw"
-          alt="A floor lounge set with waffle weave and slub cotton Kompanions in warm daylight."
           reveal={false}
         >
           {/* Origin mark. A glass pill here read as a third button beside the
@@ -255,23 +251,6 @@ function Hero() {
           />
 
           <div className="absolute inset-x-3 bottom-3 z-20 flex flex-col gap-3.5 md:inset-x-5 md:bottom-5 md:gap-4">
-            {/* Mobile-only textual context in crisp white */}
-            <div className="flex flex-col gap-2 lg:hidden max-w-lg">
-              {/* The heading is the whole caption now the paragraph is gone,
-                  so it scales with the plate: 8vw keeps the widest line
-                  ("Kraft-led & Konscious", 9.68em) inside a 320px screen. */}
-              <h2
-                data-split=""
-                className="display-face font-normal leading-[1.04] tracking-[-0.015em] text-[clamp(1.75rem,8vw,2.75rem)] text-white drop-shadow-sm"
-              >
-                {statement.lines.map((line) => (
-                  <span key={line} className="block">
-                    {splitText(ringWord(line, statement.circled, "white"))}
-                  </span>
-                ))}
-              </h2>
-            </div>
-
             <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 md:gap-3">
               <ActionButton
                 label={hero.primary.label}
@@ -291,20 +270,23 @@ function Hero() {
           </div>
         </Plate>
 
-        {/* --------------------------------------------------------- saying */}
-        {/* The headline alone, sized to the panel. It sat at display-lg in
-            three forced lines, which used under half of this box once the
-            paragraph beneath it went. Now it flows as one balanced run and
-            takes its size from the panel's own width (`.bento-say-title`),
-            so it fills the box at every desktop width. */}
-        <div className="bento-say panel hidden lg:flex flex-col justify-center p-6 md:p-8 lg:p-9">
+        <div className="bento-say christmas-hero-statement panel relative flex flex-col justify-center p-6 md:p-8 lg:p-9">
+          <Image
+            src="/media/christmas-ribbon.png"
+            alt=""
+            width={194}
+            height={221}
+            className="christmas-hero-ribbon"
+          />
           <h2
             data-split=""
-            className={clsx(displayFace, "bento-say-title text-balance")}
+            className={clsx(displayFace, "bento-say-title christmas-hero-title")}
           >
-            {splitText(
-              ringWord(statement.lines.join(" "), statement.circled),
-            )}
+            {statement.lines.map((line) => (
+              <span key={line} className="block">
+                {splitText(ringWord(line, statement.circled))}
+              </span>
+            ))}
           </h2>
         </div>
 

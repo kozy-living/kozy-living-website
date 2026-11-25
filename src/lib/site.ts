@@ -224,7 +224,7 @@ export const hero = {
    * spelled it correctly.
    */
   statement: {
-    lines: ["Kraft-led & Konscious", "textiles for", "Christmas rituals"],
+    lines: ["Kraft-led &", "Konscious", "textiles for", "Christmas rituals"],
     /** Ringed by the hand-drawn ellipse. Must appear in `lines` verbatim. */
     circled: "Christmas rituals",
   },
@@ -280,7 +280,6 @@ export const hero = {
  * nothing free to hand out.
  */
 export const heroFilms = [
-  "https://cdn.shopify.com/videos/c/o/v/3329bb6694284f05be3d3ff8a0bb6f22.mp4",
   // H.264/fast-start rendition of the 46.3 MB HEVC original (6.3 MB): it
   // starts reliably across browsers and costs far less to decode. It lived in
   // public/media until 2026-11-04, which put every play on Vercel's metered
