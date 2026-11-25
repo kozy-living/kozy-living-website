@@ -1,5 +1,5 @@
 import { getPrimaryMenu } from "@/lib/shopify";
-import { Menu } from "@/lib/shopify/types";
+import type { Menu } from "@/lib/shopify/types";
 import MobileMenu from "./mobile-menu";
 import DesktopMenu from "./desktop-menu";
 import SearchTrigger from "./search";
@@ -10,12 +10,15 @@ import Link from "@/components/ui/intent-link";
 import { UserIcon } from "@heroicons/react/24/outline";
 import HeaderHeight from "./header-height";
 
+const christmasLink: Menu = {
+  title: "Christmas",
+  path: "/search/pillow-talk",
+};
+
 /**
  * Header: a quiet announcement line over the navigation.
  *
- * Every link comes from the Shopify menu - there is no hard-coded fallback
- * list. If the menu cannot be read the nav renders empty rather than showing
- * links to routes the store may not have.
+ * Shopify supplies the primary menu. The seasonal link is appended to the header.
  *
  * LAYOUT NOTE: the mark is optically centred below `lg` and moves to the left
  * rail at `lg` and up. A seven-item menu with two flyouts simply does not fit
@@ -29,6 +32,9 @@ export async function Navbar() {
   // RootLayout). The account link always goes to `/account`, which shows
   // the sign-in panel to a signed-out visitor.
   const menu = await getPrimaryMenu();
+  const headerMenu = menu.length
+    ? [...menu.filter((item) => item.title.trim().toLowerCase() !== "christmas"), christmasLink]
+    : menu;
 
   return (
     <header
@@ -51,10 +57,10 @@ export async function Navbar() {
             there is not - seven items at 1024px - the sides shrink to their
             content and the menu slides over rather than overlapping either
             neighbour. Absolute centring overlapped the logo there. */}
-        <div className="shell relative flex h-16 items-center gap-4 lg:grid lg:h-[4.5rem] lg:grid-cols-[minmax(max-content,1fr)_auto_minmax(max-content,1fr)] lg:gap-8">
+        <div className="shell relative flex h-16 items-center gap-4 lg:grid lg:h-[4.5rem] lg:grid-cols-[minmax(max-content,1fr)_auto_minmax(max-content,1fr)] lg:gap-4 xl:gap-8">
           {/* Below lg this is the only nav affordance; from lg it disappears
               and DesktopMenu takes over. */}
-          <MobileMenu menu={menu} />
+          <MobileMenu menu={headerMenu} />
 
           <Link
             href="/"
@@ -65,7 +71,7 @@ export async function Navbar() {
             <LogoSquare />
           </Link>
 
-          <DesktopMenu menu={menu} />
+          <DesktopMenu menu={headerMenu} />
 
           <div className="ml-auto flex items-center gap-2 sm:gap-3 md:gap-4">
             <SearchTrigger menu={menu} />

@@ -11,7 +11,7 @@ import { useState } from "react";
  * stays a link to its own landing page, while its children form a flyout
  * available on hover and on keyboard focus.
  *
- * The whole row is sized to fit seven items beside the mark and the
+ * The whole row is sized to fit the navigation items beside the mark and the
  * utilities, so the type is a step down from the rest of the UI and the gaps
  * are tight. It only renders from `lg`; below that MobileMenu owns navigation.
  */
@@ -32,11 +32,12 @@ export default function DesktopMenu({ menu }: { menu: Menu[] }) {
   };
 
   return (
-    <ul className="hidden items-center gap-5 lg:flex xl:gap-7">
+    <ul className="hidden items-center gap-3 lg:flex xl:gap-7">
       {menu.map((item) => {
         const hasChildren = Boolean(item.items?.length);
         const isOpen = openTitle === item.title;
         const current = isCurrent(item);
+        const seasonal = item.title === "Christmas";
 
         return (
           <li
@@ -58,7 +59,8 @@ export default function DesktopMenu({ menu }: { menu: Menu[] }) {
               aria-current={current ? "page" : undefined}
               className={clsx(
                 "inline-flex items-center gap-1 whitespace-nowrap py-2 text-[0.8125rem] font-medium transition-colors",
-                current ? "text-ink" : "text-ink/70 hover:text-ink"
+                !seasonal && (current ? "text-ink" : "text-ink/70 hover:text-ink"),
+                seasonal && "font-semibold text-[#a31d2d] hover:text-[#741320]"
               )}
             >
               {item.title}
