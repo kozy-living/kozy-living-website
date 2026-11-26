@@ -6729,3 +6729,7 @@ html:has([data-loader]) body {
 .hero-bento > .bento-feature .pillow-talk-hero-cta {
   background-color: #31543b;
 }
+
+.display-face.pillow-talk-collection-title {
+  color: #740e20;
+}

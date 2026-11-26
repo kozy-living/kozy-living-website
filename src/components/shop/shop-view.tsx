@@ -424,7 +424,7 @@ export default async function ShopView({
             </Link>
           ) : null}
         </div>
-        <Headline className={collectionHandle === "pillow-talk" ? "mt-4 text-[#740e20]" : "mt-4"} count={results.total}>
+        <Headline className={collectionHandle === "pillow-talk" ? "mt-4 pillow-talk-collection-title" : "mt-4"} count={results.total}>
           {title}
         </Headline>
         {description ? (
