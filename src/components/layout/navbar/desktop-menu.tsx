@@ -58,7 +58,7 @@ export default function DesktopMenu({ menu }: { menu: Menu[] }) {
               aria-current={current ? "page" : undefined}
               className={clsx(
                 "inline-flex items-center gap-1 whitespace-nowrap py-2 text-[0.8125rem] font-medium transition-colors",
-                item.title === "Khristmas Collection 🎁"
+                item.title === "KHRISTMAS KAPSULE"
                   ? "christmas-menu-link rounded-lg"
                   : current ? "text-ink" : "text-ink/70 hover:text-ink"
               )}

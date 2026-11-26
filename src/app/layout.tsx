@@ -12,7 +12,6 @@ import SmoothScrollProvider from "@/components/providers/smooth-scroll-provider"
 import MotionProvider from "@/components/motion/motion-provider";
 import LoadingScreen from "@/components/motion/loading-screen";
 import RouteProgress from "@/components/motion/route-progress";
-import NewsletterPopup from "@/components/newsletter/newsletter-popup";
 import { Suspense } from "react";
 import { site } from "@/lib/site";
 import { SITE_URL } from "@/lib/site-url";
@@ -208,7 +207,6 @@ export default function RootLayout({
             <CartBar />
             {/* Outside <main> and last in the tree: it is an overlay, not
                 content, and nothing in the page should reflow around it. */}
-            <NewsletterPopup />
           </CartProvider>
         </SmoothScrollProvider>
         {/* Cloudflare Web Analytics: free, no event quota (Vercel's ran out

@@ -114,6 +114,7 @@ export default async function ProductPage({
           }
         >
           <Gallery
+            fitMobile={/^[ck]ranberry-spritz-ruffle-sleepover-set(?:-\d+)?$/.test(handle) || /^[ck]ranberry spritz\s*[-–]?\s*ruffle sleepover set\b/i.test(product.title)}
             images={product.images.slice(0, 6).map((image: Image) => ({
               src: image.url,
               altText: image.altText,

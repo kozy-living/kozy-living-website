@@ -12,7 +12,9 @@ import { useProduct, useUpdateURL } from "./product-context";
  */
 export default function Gallery({
   images,
+  fitMobile = false,
 }: {
+  fitMobile?: boolean;
   images: { src: string; altText: string }[];
 }) {
   const { state, updateImage } = useProduct();
@@ -31,7 +33,7 @@ export default function Gallery({
       <div className="plate aspect-[6/7] w-full">
         {images[imageIndex] ? (
           <Image
-            className="object-cover"
+            className={fitMobile ? "object-contain lg:object-cover" : "object-cover"}
             fill
             sizes="(min-width: 1024px) 50vw, 100vw"
             src={images[imageIndex]?.src as string}

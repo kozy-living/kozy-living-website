@@ -31,6 +31,7 @@ import CollectionPillRail from "@/components/ui/collection-pill-rail";
 import { splitText } from "@/components/motion/split-text";
 import ColourRail, { type RailColour } from "@/components/shop/colour-rail";
 import StoryBand, { StoryBandFallback } from "@/components/home/story-band";
+import PillowTalkPopup from "@/components/home/pillow-talk-popup";
 import ClosingFilm from "@/components/home/closing-film";
 import KitAtelierSection, {
   KitAtelierFallback,
@@ -95,6 +96,7 @@ export default function Home() {
   return (
     <>
       <Hero />
+      <PillowTalkPopup />
 
       <Suspense fallback={null}>
         <CollectionFilters />
@@ -257,7 +259,7 @@ function Hero() {
                 href={hero.primary.href}
                 icon="arrow"
                 variant="solid"
-                className="action-btn-ivory-well"
+                className="action-btn-ivory-well pillow-talk-hero-cta"
               />
               <ActionButton
                 label={hero.secondary.label}

@@ -6725,3 +6725,7 @@ html:has([data-loader]) body {
     font-size: min(9.7cqi, 21cqb, 4.5rem);
   }
 }
+
+.hero-bento > .bento-feature .pillow-talk-hero-cta {
+  background-color: #31543b;
+}
