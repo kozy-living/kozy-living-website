@@ -96,6 +96,18 @@ export function ProductDescription({
   const handles = new Set(
     product.collections.map((collection) => collection.handle)
   );
+  // The supplied Pillow Talk chart measures adult garments, not pet clothing.
+  const adultPillowTalk = handles.has("pillow-talk") &&
+    /nightsuit|sleepover|nightwear|mom|matching/i.test(`${product.title} ${product.handle}`);
+  const adultOptions = product.options.filter((option) =>
+    /size/i.test(option.name) && !/dog|pet|furry|fur baby/i.test(option.name) &&
+    ["S", "M", "L"].every((size) => option.values.some((value) =>
+      value.trim().toUpperCase() === size)) &&
+    option.values.every((value) => ["S", "M", "L"].includes(value.trim().toUpperCase()))
+  );
+  const pillowTalkSizeOption = adultPillowTalk
+    ? (adultOptions.find((option) => /mom|parent|human|women/i.test(option.name)) ?? adultOptions[0])?.name
+    : undefined;
   const collectionIcon = handles.has(PET_PARENT_COLLECTION_HANDLE)
     ? brandIcons.petParent
     : handles.has(PET_COLLECTION_HANDLE)
@@ -212,6 +224,7 @@ export function ProductDescription({
           options={product.options}
           variants={product.variants}
           sizeChart={sizeChart}
+          pillowTalkSizeOption={pillowTalkSizeOption}
         />
       </div>
 

@@ -5,6 +5,7 @@ import { useProduct, useUpdateURL } from "./product-context";
 import clsx from "clsx";
 import type { ProductSizeChart } from "@/lib/shop/size-chart";
 import { SizeGuide } from "./size-guide";
+import { PillowTalkSizeChart } from "./pillow-talk-size-chart";
 
 type Combination = {
   id: string;
@@ -30,11 +31,13 @@ export default function VariantSelector({
   options,
   variants,
   sizeChart,
+  pillowTalkSizeOption,
 }: {
   options: ProductOption[];
   variants: ProductVariant[];
   /** Puts "Size guide" beside the option the chart sizes. */
   sizeChart?: ProductSizeChart | null;
+  pillowTalkSizeOption?: string;
 }) {
   const { state, updateOption } = useProduct();
   const updateURL = useUpdateURL();
@@ -67,14 +70,18 @@ export default function VariantSelector({
                 flex row and the legend stays for screen readers. Pinning
                 the link absolutely against the fieldset ran it into the
                 first row of pills at every width below desktop. */}
-            {sizeChart?.optionName === option.name ? (
+            {(pillowTalkSizeOption === option.name || sizeChart?.optionName === option.name) ? (
               <>
                 <legend className="sr-only">{option.name}</legend>
                 <div className="flex items-baseline justify-between gap-4">
                   <span aria-hidden className="eyebrow text-muted">
                     {option.name}
                   </span>
-                  <SizeGuide sizeChart={sizeChart} />
+                  {pillowTalkSizeOption === option.name ? (
+                    <PillowTalkSizeChart />
+                  ) : sizeChart ? (
+                    <SizeGuide sizeChart={sizeChart} />
+                  ) : null}
                 </div>
               </>
             ) : (
