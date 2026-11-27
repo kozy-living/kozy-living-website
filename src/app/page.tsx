@@ -264,7 +264,7 @@ function Hero() {
               <ActionButton
                 label={hero.secondary.label}
                 href={hero.secondary.href}
-                icon="down"
+                icon="arrow"
                 variant="solid"
                 className="action-btn-ivory-well khristmas-hero-cta"
               />
@@ -273,13 +273,6 @@ function Hero() {
         </Plate>
 
         <div className="bento-say christmas-hero-statement panel relative flex flex-col justify-center p-6 md:p-8 lg:p-9">
-          <Image
-            src="/media/christmas-ribbon.png"
-            alt=""
-            width={194}
-            height={221}
-            className="christmas-hero-ribbon"
-          />
           <h2
             data-split=""
             className={clsx(displayFace, "bento-say-title christmas-hero-title")}

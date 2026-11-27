@@ -16,7 +16,7 @@ const christmasLink: Menu = {
 };
 
 const pillowTalkLink: Menu = {
-  title: "Pillow Talk Capsule Collection",
+  title: "Pillow Talk Kapsule Kollection",
   path: pillowTalkPath,
 };
 
@@ -42,7 +42,7 @@ export async function Navbar() {
     .flatMap((item) => {
       if (item.path !== "/search") return [item];
       const children = (item.items ?? []).filter(
-        (child) => child.title.trim().toLowerCase() !== pillowTalkLink.title.toLowerCase()
+        (child) => !/^pillow talk [ck]apsule [ck]ollection$/i.test(child.title.trim())
       );
       return [{ ...item, items: [...children, pillowTalkLink] }, christmasLink];
     });

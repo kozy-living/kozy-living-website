@@ -190,7 +190,7 @@ export const founderReel = [
 
 /** The quiet line above the header. */
 export const pillowTalkPath = "/search/pillow-talk";
-export const announcement = "Pillow Talk – Holiday Capsule Kollection is live ✨";
+export const announcement = "Pillow Talk – Holiday Kapsule Kollection is live";
 
 /* ------------------------------------------------------------------ homepage
    The sections below map one-to-one onto the homepage layout, in page order.
@@ -212,7 +212,7 @@ export const hero = {
    * Kept beside `flag` rather than derived from it: the social card (which
    * cannot read this layout) still wants the sentence whole.
    */
-  flagMark: { lead: "Holiday Capsule Kollection", place: "by Kozy Living" },
+  flagMark: { lead: "Holiday Kapsule Kollection", place: "by Kozy Living" },
   blurb:
     "Kozy Living Textiles are your in-between Kompanions - krafted from 100% natural fibres to turn everyday moments into mindful daily rituals.",
   /**
@@ -242,7 +242,7 @@ export const hero = {
     },
   ],
   primary: { label: "Shop Pillow Talk", href: pillowTalkPath },
-  secondary: { label: "Explore Khristmas", href: "#statement" },
+  secondary: { label: "Explore Khristmas", href: "/khristmas-kapsule" },
   /** The circular button that sits on the feature photograph. */
   circle: { label: "Shop now", href: "/search" },
   /** Set in the display face in the band below the frame. The O is the

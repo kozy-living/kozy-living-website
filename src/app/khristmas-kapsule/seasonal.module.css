@@ -1,0 +1,14 @@
+.page{padding-bottom:clamp(2rem,5vw,5rem)}
+.hero{display:grid;grid-template-columns:45% 55%;background:#f6e7d8;min-height:clamp(340px,35vw,570px);overflow:hidden}
+.copy{padding:clamp(2rem,5vw,6rem);align-self:center;position:relative;z-index:1}
+.eyebrow{color:#740e20;font-weight:600;letter-spacing:.08em;margin-bottom:1rem}
+.title{color:#740e20;font-size:clamp(2.1rem,4.5vw,5rem);line-height:1.05;overflow-wrap:normal}
+.description{margin:1.25rem 0;max-width:32rem;font-size:clamp(1rem,1.4vw,1.3rem)}
+.cta{display:inline-flex;align-items:center;gap:1rem;background:#740e20;color:#fff6e8;border-radius:999px;padding:.85rem 1.4rem;font-weight:600}
+.cta:hover{background:#52101c}.cta:focus-visible{outline:2px solid #740e20;outline-offset:4px}
+.photo{position:relative;min-height:100%;overflow:hidden}.image{object-fit:cover;object-position:center}
+.photo:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#f6e7d8,transparent 22%);pointer-events:none}
+.heading{text-align:center;padding:clamp(2rem,4vw,4rem) 0 1rem}.rule{display:flex;align-items:center;justify-content:center;gap:.75rem;color:#740e20;margin:1rem auto 0}.rule:before,.rule:after{content:'';height:1px;background:currentColor;width:clamp(3rem,10vw,9rem)}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.25rem}
+@media(max-width:767px){.hero{grid-template-columns:1fr}.copy{padding:2rem 1.25rem;text-align:center}.description{margin:1rem auto}.photo{min-height:280px;aspect-ratio:4/3}.photo:after{background:linear-gradient(180deg,#f6e7d8,transparent 15%)}.title{font-size:clamp(2rem,8vw,3.5rem)}}
+@media(max-width:639px){.page :global(article) {min-width:0}.page :global(article h3){overflow-wrap:anywhere}.page :global(article .items-baseline.justify-between){flex-direction:column;align-items:flex-start;gap:.25rem}.page :global(article button.flex-1){min-width:0;padding-inline:.25rem;font-size:.7rem}.page :global(article button.w-10){width:2rem}.page :global(article .flex.items-center.gap-2){gap:.25rem}}

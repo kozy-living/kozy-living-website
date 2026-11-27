@@ -117,7 +117,7 @@ export default function DesktopMenu({ menu }: { menu: Menu[] }) {
                         href={child.path}
                         className={clsx(
                           "block rounded-xl px-3 py-2 text-ui text-ink/80 transition-colors hover:bg-wash hover:text-ink",
-                          child.title === "Pillow Talk Capsule Collection"
+                          child.title === "Pillow Talk Kapsule Kollection"
                             ? "whitespace-normal break-words"
                             : "whitespace-nowrap"
                         )}
