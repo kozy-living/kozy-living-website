@@ -32,15 +32,8 @@ export default async function KhristmasPage({ searchParams }: {
   return (
     <div className={styles.page}>
       <section className={styles.hero} aria-labelledby="festive-title">
-        <div className={styles.copy}>
-          <p className={styles.eyebrow}>THE FESTIVE EDIT</p>
-          <Headline as="h1" id="festive-title" split={false} className={styles.title}>KHRISTMAS KAPSULE KOLLECTION</Headline>
-          <p className={styles.description}>Krafted textiles, Kozy pieces and matching moments for you &amp; your companion.</p>
-          <a className={styles.cta} href="#khristmas-products">Shop the Kollection <span aria-hidden>→</span></a>
-        </div>
-        <div className={styles.photo}>
-          <Image src="/media/laddu-kessentials.webp" alt="Kozy Living festive Pillow Talk campaign" fill priority sizes="(min-width: 768px) 55vw, 100vw" className={styles.image} />
-        </div>
+        <h1 id="festive-title" className={styles.visuallyHidden}>Khristmas Kapsule Kollection</h1>
+        <Image src="/media/khristmas-kapsule-final.webp" alt="The Festive Edit — Khristmas Kapsule Kollection. Krafted textiles, Kozy pieces and matching moments for you and your companion." width={1672} height={941} priority sizes="100vw" className={styles.banner} unoptimized />
       </section>
       <section className="shell" id="khristmas-products" style={{scrollMarginTop: "calc(var(--header-h) + 1rem)"}}>
         <div className={styles.heading}>
