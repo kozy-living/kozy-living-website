@@ -248,7 +248,7 @@ link. How the menu maps onto the panel:
   under the brand name (`footer.more`);
 - the legal row is **`getShopPolicyNames()`** - only policies the merchant
   has written - with the small back-to-top seal at its end, followed by the
-  website credit (`footer.credit` in `site.ts`, linking to Raenit Studio on
+  website credit (`footer.credit` in `site.ts`, linking to raenit Studio on
   Instagram). Every `/search/<handle>` and `/policies/<handle>` link is guarded
   against what exists (the guard stands down if the lookup fails).
 

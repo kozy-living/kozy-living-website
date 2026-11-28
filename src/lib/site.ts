@@ -1071,7 +1071,7 @@ export const footer = {
   /** Website design and development credit at the foot of the page. */
   credit: {
     label: "Website created & designed by",
-    name: "Raenit Studio",
+    name: "raenit Studio",
     href: "https://www.instagram.com/raenit.studio/",
   },
   /** The closing mark. Its "o" is the block-printed textile letter. */
