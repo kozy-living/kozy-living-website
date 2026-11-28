@@ -1068,6 +1068,12 @@ export const footer = {
   /** The hero's origin flag itself, not a new use of the K spelling. */
   stamp: hero.flag,
   copyright: "All rights reserved.",
+  /** Website design and development credit at the foot of the page. */
+  credit: {
+    label: "Website created & designed by",
+    name: "Raenit Studio",
+    href: "https://www.instagram.com/raenit.studio/",
+  },
   /** The closing mark. Its "o" is the block-printed textile letter. */
   wordmark: "kozy living",
 } as const;

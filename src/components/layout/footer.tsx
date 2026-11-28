@@ -247,6 +247,21 @@ export default async function Footer() {
             <BackToTop size="sm" />
           </div>
         </div>
+
+        {/* ------------------------------------------------------- credit */}
+        <p className="footer-credit spec-mono">
+          <span>{footer.credit.label}</span>
+          <a
+            href={footer.credit.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${footer.credit.label} ${footer.credit.name} on Instagram`}
+            className="footer-link footer-link-sm footer-link-lead items-center gap-1.5"
+          >
+            <InstagramGlyph />
+            <Roll text={footer.credit.name} />
+          </a>
+        </p>
       </div>
     </footer>
   );

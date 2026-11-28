@@ -247,9 +247,10 @@ link. How the menu maps onto the panel:
   merchant empties, e.g. Kessentials as of 2026-10-14) → one last column
   under the brand name (`footer.more`);
 - the legal row is **`getShopPolicyNames()`** - only policies the merchant
-  has written - with the small back-to-top seal at its end. Every
-  `/search/<handle>` and `/policies/<handle>` link is guarded against what
-  exists (the guard stands down if the lookup fails).
+  has written - with the small back-to-top seal at its end, followed by the
+  website credit (`footer.credit` in `site.ts`, linking to Raenit Studio on
+  Instagram). Every `/search/<handle>` and `/policies/<handle>` link is guarded
+  against what exists (the guard stands down if the lookup fails).
 
 Plain headings and sentence-case links are the owner's call (2026-10-14):
 pill-headed columns read as buttons, small tracked caps read slowly, and the

@@ -6572,6 +6572,15 @@ html:has([data-loader]) body {
     }
   }
 
+  .footer-credit {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.5rem;
+    border-top: 1px solid var(--rule);
+    padding-block: 0.875rem 1.25rem;
+  }
+
   /* ----------------------------------------------------------- wordmark
 
      An endless ticker of the mark (`.marquee-track`), full bleed and shown
